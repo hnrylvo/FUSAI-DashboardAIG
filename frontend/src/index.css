@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans', var(--font-sans);
+
+  --color-brand-navy: #014F84;
+  --color-brand-navy-600: #0a6aa8;
+  --color-brand-navy-700: #023e68;
+  --color-brand-navy-800: #012f50;
+  --color-brand-navy-900: #001f36;
+
+  --color-brand-orange: #F48437;
+  --color-brand-orange-hover: #e0722a;
+  --color-brand-orange-light: #ff9a54;
+  --color-brand-orange-subtle: #fff6ee;
+
+  --color-brand-green: #2e9e6b;
+  --color-brand-green-subtle: #e5f6ee;
+  --color-brand-red: #d9534f;
+  --color-brand-red-subtle: #fdeceb;
+  --color-brand-amber: #e0a500;
+  --color-brand-amber-subtle: #fff8eb;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-slate-200);
+  }
+
+  body {
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Custom subtle scrollbars for dense data tables and dropdown panels */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* Tabular numerals helper class */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Glassmorphic subtle top bar */
+.glass-header {
+  background: linear-gradient(135deg, #014F84 0%, #023e68 55%, #012f50 100%);
+  box-shadow: 0 4px 20px -2px rgba(1, 47, 80, 0.35);
+}

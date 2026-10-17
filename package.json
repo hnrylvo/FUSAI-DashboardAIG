@@ -1,0 +1,27 @@
+{
+  "name": "fusai-dashboard-aig",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise Portfolio Dashboard para Apoyo Integral Guatemala, S.A. (Grupo FUSAI)",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "node --eval \"const { spawn } = require('child_process'); spawn('npm', ['run', 'dev'], { cwd: 'backend', stdio: 'inherit', shell: true }); spawn('npm', ['run', 'dev'], { cwd: 'frontend', stdio: 'inherit', shell: true });\"",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "start": "cd backend && npm run start",
+    "test:parity": "cd backend && npm run test:parity"
+  },
+  "keywords": [
+    "portfolio-dashboard",
+    "fusai",
+    "apoyo-integral-guatemala",
+    "fintech",
+    "credit-risk",
+    "par1",
+    "par30"
+  ],
+  "author": "Antigravity Engineering",
+  "license": "UNLICENSED"
+}
