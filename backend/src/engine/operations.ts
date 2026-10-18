@@ -58,9 +58,13 @@ export interface PaymentDayResult {
 export function computePaymentDays(ctx: Ctx, cierre: string, mode: 'all' | 'dia'): PaymentDayResult {
   let rows = ctx.rowsF(cierre);
   if (mode === 'dia') rows = rows.filter((r) => g(r, 'dmora') <= 0);
+  const seen = new Set<string>();
   const monto: number[] = Array(32).fill(0);
   const cnt: number[] = Array(32).fill(0);
   for (const r of rows) {
+    const ref = String(g(r, 'ref') || `${g(r, 'cod')}-${g(r, 'dpago')}`);
+    if (seen.has(ref)) continue;
+    seen.add(ref);
     const d = +g(r, 'dpago') || 0;
     if (d < 1 || d > 31) continue;
     monto[d] += +g(r, 'sc') || 0;
@@ -78,6 +82,7 @@ export interface MaturityResult {
 export function computeMaturities(ctx: Ctx, cierre: string, window: '30' | '90'): MaturityResult {
   const base = parseD(cierre)!;
   const [lo, hi] = window === '30' ? [0, 30] : [31, 90];
+  const seen = new Set<string>();
   const rows = ctx
     .rowsF(cierre)
     .filter((r) => {
@@ -85,7 +90,11 @@ export function computeMaturities(ctx: Ctx, cierre: string, window: '30' | '90')
       const fv = parseD(g(r, 'fven'));
       if (!fv) return false;
       const dd = daysBetween(base, fv);
-      return dd >= lo && dd <= hi;
+      if (dd < lo || dd > hi) return false;
+      const id = String(g(r, 'ref') || `${g(r, 'cod')}-${g(r, 'fven')}`);
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
     })
     .sort((a, b) => parseD(g(a, 'fven'))!.getTime() - parseD(g(b, 'fven'))!.getTime());
   return {
@@ -116,6 +125,7 @@ export interface PreCollectionResult {
 
 export function computePreCollection(ctx: Ctx, cierre: string): PreCollectionResult {
   const base = parseD(cierre)!;
+  const seen = new Set<string>();
   const rows = ctx
     .rowsF(cierre)
     .filter((r) => {
@@ -124,7 +134,11 @@ export function computePreCollection(ctx: Ctx, cierre: string): PreCollectionRes
       const fp = estFirstPay(r);
       if (!fp) return false;
       const dd = daysBetween(base, fp);
-      return dd >= -5 && dd <= 30;
+      if (dd < -5 || dd > 30) return false;
+      const id = String(g(r, 'ref') || `${g(r, 'cod')}-${g(r, 'dpago')}`);
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
     })
     .sort((a, b) => estFirstPay(a)!.getTime() - estFirstPay(b)!.getTime());
   const fmtDate = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : '');

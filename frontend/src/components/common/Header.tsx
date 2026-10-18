@@ -1,10 +1,14 @@
 import React from 'react';
-import { LogOut, UploadCloud, User as UserIcon, ShieldCheck } from 'lucide-react';
+import { LogOut, Menu, UploadCloud, User as UserIcon, ShieldCheck } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import { cLabel } from '../../lib/formatters';
 
-export const Header: React.FC = () => {
+export interface HeaderProps {
+  onOpenMobileMenu?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const { user, logout } = useAuthStore();
   const { meta, cierre, setCierre, setUploadModalOpen } = useDashboardStore();
 
@@ -12,28 +16,24 @@ export const Header: React.FC = () => {
   const sortedCierres = [...cierres].sort((a, b) => b.cierre.localeCompare(a.cierre));
 
   return (
-    <header className="glass-header text-white px-4 md:px-6 py-3.5 sticky top-0 z-40 transition-all">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-        {/* Brand Logo & Subtitle */}
+    <header className="glass-header text-white px-4 md:px-6 lg:px-8 py-3 sticky top-0 z-30 transition-all min-h-[68px] flex items-center">
+      <div className="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        {/* Brand Section */}
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-white flex flex-col items-center justify-center shadow-md shrink-0">
-            <span className="font-extrabold text-[19px] tracking-wider text-[#014F84] leading-none">
-              A<span className="text-[#F48437]">I</span>G
-            </span>
-            <span className="text-[6.5px] font-bold text-slate-500 tracking-wider mt-0.5">
-              APOYO INTEGRAL
-            </span>
-          </div>
+          {onOpenMobileMenu && (
+            <button
+              type="button"
+              onClick={onOpenMobileMenu}
+              className="lg:hidden p-2 -ml-1 text-white/90 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+              title="Abrir menú de navegación"
+            >
+              <Menu size={22} />
+            </button>
+          )}
           <div>
-            <h1 className="text-base md:text-lg font-bold tracking-tight leading-tight flex items-center gap-2">
+            <h1 className="text-base md:text-lg font-bold tracking-tight leading-tight text-white">
               Dashboard de Cartera
-              <span className="hidden sm:inline-flex items-center text-[10px] font-semibold uppercase tracking-wider bg-white/15 px-2 py-0.5 rounded-full border border-white/20">
-                Grupo FUSAI
-              </span>
             </h1>
-            <p className="text-[11.5px] text-white/80 font-medium">
-              Apoyo Integral Guatemala, S.A. · Riesgos &amp; Dirección
-            </p>
           </div>
         </div>
 

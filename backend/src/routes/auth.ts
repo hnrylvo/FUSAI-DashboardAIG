@@ -1,6 +1,7 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
+import { OAuth2Client } from 'google-auth-library';
 import { z } from 'zod';
 import { clearSession, issueSession, readSession } from '../auth/session.js';
 import { config, googleOAuthEnabled } from '../config.js';
@@ -8,6 +9,8 @@ import { demoAccounts, googleUser, verifyCredentials } from '../data/users.js';
 import { HttpError, parseBody } from '../http/errors.js';
 
 export const authRouter = Router();
+
+const googleClient = new OAuth2Client(config.google.clientId);
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60_000,
@@ -24,10 +27,15 @@ const LoginSchema = z.object({
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.').max(200),
 });
 
+const GoogleVerifySchema = z.object({
+  credential: z.string().min(1, 'El ID Token de Google es obligatorio.'),
+});
+
 /** Proveedores disponibles + cuentas demo (solo fuera de producción). */
 authRouter.get('/providers', (_req, res) => {
   res.json({
     google: googleOAuthEnabled() ? 'oauth' : config.google.simulation ? 'simulated' : 'disabled',
+    clientId: config.google.clientId || undefined,
     demoAccounts: config.isProd ? [] : demoAccounts(),
   });
 });
@@ -36,8 +44,8 @@ authRouter.post('/login', loginLimiter, async (req, res) => {
   const { email, password } = parseBody(LoginSchema, req);
   const user = await verifyCredentials(email, password);
   if (!user) throw new HttpError(401, 'Correo o contraseña incorrectos.', 'INVALID_CREDENTIALS');
-  issueSession(res, user);
-  res.json({ user });
+  const token = issueSession(res, user);
+  res.json({ user, token });
 });
 
 authRouter.post('/logout', (_req, res) => {
@@ -60,6 +68,71 @@ function domainAllowed(email: string, hd?: string) {
   const domain = (hd || email.split('@')[1] || '').toLowerCase();
   return allowed.includes(domain);
 }
+
+/**
+ * POST /api/auth/google
+ * Verificación del ID Token de Google en el servidor (Sign-In with Google / One Tap).
+ * Valida la firma criptográfica con google-auth-library, aud, iss, exp y dominio corporativo.
+ */
+authRouter.post('/google', async (req, res, next) => {
+  if (!config.google.clientId) {
+    throw new HttpError(503, 'Google OAuth no está configurado en el servidor.', 'GOOGLE_NOT_CONFIGURED');
+  }
+
+  const { credential } = parseBody(GoogleVerifySchema, req);
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: config.google.clientId,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) {
+      throw new HttpError(401, 'No se pudo verificar el payload del token.', 'INVALID_GOOGLE_TOKEN');
+    }
+
+    // Validación estricta de emisor (issuer) y audiencia (audience)
+    const validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
+    if (!payload.iss || !validIssuers.includes(payload.iss)) {
+      throw new HttpError(401, 'Emisor del token de Google no válido.', 'INVALID_ISSUER');
+    }
+
+    if (payload.aud !== config.google.clientId) {
+      throw new HttpError(401, 'La audiencia del token de Google no coincide.', 'INVALID_AUDIENCE');
+    }
+
+    if (!payload.email || !payload.email_verified) {
+      throw new HttpError(401, 'El correo de Google no está verificado.', 'GOOGLE_UNVERIFIED_EMAIL');
+    }
+
+    if (!domainAllowed(payload.email, payload.hd)) {
+      throw new HttpError(403, 'Dominio de correo no autorizado. Utilice una cuenta corporativa.', 'GOOGLE_DOMAIN_DENIED');
+    }
+
+    // Extracción segura de claims de identidad validados en el servidor
+    const user = googleUser({
+      email: payload.email,
+      name: payload.name || payload.given_name || payload.email.split('@')[0],
+      picture: payload.picture,
+    });
+
+    const token = issueSession(res, user);
+
+    res.json({
+      user,
+      token,
+      message: 'Autenticación exitosa con Google.',
+    });
+  } catch (err) {
+    if (err instanceof HttpError) {
+      return next(err);
+    }
+    // Errores de verificación criptográfica (firma inválida, expiración, etc.)
+    console.error('[auth] Error al verificar ID Token de Google:', err instanceof Error ? err.message : err);
+    return next(new HttpError(401, 'La credencial de Google es inválida o ha expirado.', 'INVALID_GOOGLE_TOKEN'));
+  }
+});
 
 /** Paso 1: redirige al consentimiento de Google (Authorization Code flow + state anti-CSRF). */
 authRouter.get('/google', (_req, res) => {
@@ -132,6 +205,6 @@ authRouter.post('/google/simulate', (req, res) => {
   const { email, name } = parseBody(SimSchema, req);
   if (!domainAllowed(email)) throw new HttpError(403, 'Dominio de correo no permitido.', 'GOOGLE_DOMAIN');
   const user = googleUser({ email, name });
-  issueSession(res, user);
-  res.json({ user });
+  const token = issueSession(res, user);
+  res.json({ user, token });
 });

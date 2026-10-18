@@ -113,8 +113,8 @@ Paridad: 2428/2428 comprobaciones idénticas al HTML original.
    - **Analista (`analyst`):** Acceso de solo lectura a métricas, gráficos, exportaciones y matrices.
 3. **Autenticación Híbrida:**
    - **Tradicional:** Validación con correo y contraseña cifrada con `bcryptjs` (cost factor 10-12).
-   - **Google OAuth2:** Flujo *Authorization Code* estándar con validación de parámetro `state` anti-CSRF y restricción opcional por dominios corporativos autorizados (`GOOGLE_ALLOWED_DOMAINS`).
-   - **Simulación OAuth2:** Modo para desarrollo local sin requerir credenciales de Google Cloud Console.
+   - **Google OAuth 2.0 (Sign-In with Google):** Flujo de producción con el componente oficial `<GoogleLogin />` (`@react-oauth/google`) en React y verificación criptográfica estricta en el servidor Node.js mediante `google-auth-library`. Valida audiencia (`aud`), emisor (`iss`), expiración (`exp`) y restricción por dominios corporativos autorizados (`GOOGLE_ALLOWED_DOMAINS`).
+   - **Simulación OAuth2:** Modo fallback para desarrollo local cuando no hay conexión a internet o credenciales configuradas.
 
 ### Cuentas Demo de Prueba Rápida
 
@@ -262,12 +262,13 @@ La aplicación completa estará disponible en `http://localhost:4000/`.
 ## 📊 Endpoints de la API RESTful
 
 ### `/api/auth`
-- `GET /api/auth/providers` — Consulta de proveedores de autenticación disponibles y cuentas demo.
+- `GET /api/auth/providers` — Consulta de proveedores de autenticación disponibles, Client ID público y cuentas demo.
 - `POST /api/auth/login` — Autenticación con correo y contraseña.
+- `POST /api/auth/google` — Verificación del ID Token de Google (`credential`) con `google-auth-library` y generación de sesión.
 - `POST /api/auth/logout` — Destrucción de sesión y limpieza de cookies.
 - `GET /api/auth/me` — Datos del usuario autenticado.
-- `GET /api/auth/google` — Inicio de flujo Google OAuth2.
-- `GET /api/auth/google/callback` — Retorno y validación de tokens OAuth2.
+- `GET /api/auth/google` — Inicio de flujo alternativo Google OAuth2 por redirección.
+- `GET /api/auth/google/callback` — Retorno y validación de tokens OAuth2 por código de autorización.
 - `POST /api/auth/google/simulate` — Autenticación simulada con cuenta corporativa.
 
 ### `/api/portfolio` *(Requiere autenticación)*

@@ -10,6 +10,7 @@ interface AuthState {
 
   checkAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  googleLogin: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
   simulateGoogleLogin: (email: string, name?: string) => Promise<void>;
   clearError: () => void;
@@ -29,6 +30,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const res = await api.auth.getMe();
       set({ user: res.user, isInitialized: true, isLoading: false });
     } catch {
+      localStorage.removeItem('aig_token');
       set({ user: null, isInitialized: true, isLoading: false });
     }
   },
@@ -37,9 +39,27 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const res = await api.auth.login({ email, password });
+      if (res.token) {
+        localStorage.setItem('aig_token', res.token);
+      }
       set({ user: res.user, isLoading: false, error: null });
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Error al iniciar sesión.';
+      set({ error: message, isLoading: false });
+      throw err;
+    }
+  },
+
+  googleLogin: async (credential: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const res = await api.auth.googleLogin(credential);
+      if (res.token) {
+        localStorage.setItem('aig_token', res.token);
+      }
+      set({ user: res.user, isLoading: false, error: null });
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Error en autenticación con Google.';
       set({ error: message, isLoading: false });
       throw err;
     }
@@ -50,6 +70,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ isLoading: true });
       await api.auth.logout();
     } finally {
+      localStorage.removeItem('aig_token');
       set({ user: null, isLoading: false, error: null });
     }
   },
@@ -58,6 +79,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const res = await api.auth.simulateGoogle({ email, name });
+      if (res.token) {
+        localStorage.setItem('aig_token', res.token);
+      }
       set({ user: res.user, isLoading: false, error: null });
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Error en autenticación con Google.';

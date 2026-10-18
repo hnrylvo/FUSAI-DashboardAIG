@@ -21,11 +21,15 @@ export function createApp() {
       contentSecurityPolicy: {
         directives: {
           'default-src': ["'self'"],
-          'img-src': ["'self'", 'data:', 'https://*.googleusercontent.com'],
-          'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          'script-src': ["'self'", "'unsafe-inline'", 'https://accounts.google.com/gsi/client'],
+          'frame-src': ["'self'", 'https://accounts.google.com/gsi/'],
+          'connect-src': ["'self'", 'https://accounts.google.com/gsi/', 'https://*.google.com', 'https://identitytoolkit.googleapis.com'],
+          'img-src': ["'self'", 'data:', 'https://*.googleusercontent.com', 'https://ssl.gstatic.com'],
+          'style-src': ["'self'", "'unsafe-inline'", 'https://accounts.google.com/gsi/style', 'https://fonts.googleapis.com'],
           'font-src': ["'self'", 'https://fonts.gstatic.com'],
         },
       },
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
     }),
   );
   app.use(cors({ origin: config.frontendUrl, credentials: true }));

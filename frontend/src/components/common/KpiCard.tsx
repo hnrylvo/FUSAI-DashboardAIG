@@ -7,7 +7,7 @@ export interface KpiCardProps {
   detail?: string;
   trend?: 'up' | 'down' | 'flat';
   accent?: 'navy' | 'orange' | 'red' | 'green';
-  icon?: string;
+  icon?: React.ReactNode;
 }
 
 export const KpiCard: React.FC<KpiCardProps> = ({
@@ -31,37 +31,58 @@ export const KpiCard: React.FC<KpiCardProps> = ({
     flat: 'text-slate-500',
   }[trend];
 
+  const iconAccentClasses = {
+    navy: 'text-[#014F84] bg-slate-50 border-slate-100',
+    orange: 'text-[#F48437] bg-orange-50/50 border-orange-100/50',
+    red: 'text-[#d9534f] bg-red-50/50 border-red-100/50',
+    green: 'text-[#2e9e6b] bg-emerald-50/50 border-emerald-100/50',
+  }[accent];
+
   return (
     <div
       className={clsx(
-        'relative overflow-hidden rounded-xl bg-gradient-to-br from-white to-slate-50/70 p-3.5 sm:p-4 shadow-sm border border-slate-200/80',
-        'border-l-[5px] transition-all duration-200 hover:shadow-md hover:-translate-y-0.5',
+        'relative overflow-hidden rounded-xl bg-white p-4 shadow-xs border border-slate-200/80',
+        'border-l-[4px] transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group',
         accentBorder,
       )}
     >
-      {/* Background icon badge */}
-      {icon && (
-        <span className="absolute right-3 top-3 text-2xl opacity-15 select-none pointer-events-none">
-          {icon}
+      {/* Top Header: Label + Discreet Top-Right Monochrome SVG Icon */}
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-[10.5px] uppercase font-bold tracking-wider text-slate-500 truncate">
+          {label}
         </span>
-      )}
-
-      {/* Label */}
-      <div className="text-[10.5px] uppercase font-bold tracking-wider text-slate-500 truncate pr-6">
-        {label}
+        {icon && (
+          <div
+            className={clsx(
+              'w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border transition-all duration-200',
+              'opacity-75 group-hover:opacity-100',
+              iconAccentClasses,
+            )}
+          >
+            {icon}
+          </div>
+        )}
       </div>
 
       {/* Numeric Value */}
-      <div className="mt-1 text-2xl sm:text-[26px] font-extrabold tracking-tight text-slate-900 tabular-nums leading-none">
+      <div className="mt-2 text-2xl sm:text-[26px] font-extrabold tracking-tight text-slate-900 tabular-nums leading-none">
         {value}
       </div>
 
       {/* Delta Detail */}
       {detail && (
-        <div className={clsx('mt-1.5 text-[11px] font-semibold tabular-nums truncate', trendColor)}>
-          {detail}
+        <div
+          className={clsx(
+            'mt-2.5 text-[11px] font-semibold tabular-nums truncate flex items-center gap-1',
+            trendColor,
+          )}
+        >
+          {trend === 'up' && <span className="text-[10px] leading-none">▲</span>}
+          {trend === 'down' && <span className="text-[10px] leading-none">▼</span>}
+          <span>{detail}</span>
         </div>
       )}
     </div>
   );
 };
+

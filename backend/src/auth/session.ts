@@ -17,7 +17,7 @@ const cookieOpts = () => ({
   path: '/',
 });
 
-export function issueSession(res: Response, user: User) {
+export function issueSession(res: Response, user: User): string {
   const token = jwt.sign({ user }, config.jwtSecret, {
     algorithm: 'HS256',
     expiresIn: `${config.sessionTtlHours}h`,
@@ -25,6 +25,7 @@ export function issueSession(res: Response, user: User) {
     issuer: 'aig-portfolio',
   });
   res.cookie(config.cookieName, token, { ...cookieOpts(), maxAge: config.sessionTtlHours * 3600_000 });
+  return token;
 }
 
 export function clearSession(res: Response) {
@@ -32,7 +33,10 @@ export function clearSession(res: Response) {
 }
 
 export function readSession(req: Request): User | null {
-  const token = req.cookies?.[config.cookieName];
+  let token = req.cookies?.[config.cookieName];
+  if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+    token = req.headers.authorization.slice(7).trim();
+  }
   if (!token) return null;
   try {
     const payload = jwt.verify(token, config.jwtSecret, { algorithms: ['HS256'], issuer: 'aig-portfolio' }) as { user: User };

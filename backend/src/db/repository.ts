@@ -116,8 +116,20 @@ export class PortfolioRepository {
       cierre = maxDate || new Date().toISOString().slice(0, 10);
     }
 
+    // Deduplicar registros por referencia de crédito para eliminar duplicados por cartesian joins
+    const seenRefs = new Set<string>();
+    const uniqueRecords: Record<string, unknown>[] = [];
+    for (const rec of records) {
+      const ref = String(rec.ref || '').trim();
+      const cod = String(rec.cod || '').trim();
+      const key = ref || `${cod}-${rec.fdes}-${rec.mo}`;
+      if (seenRefs.has(key)) continue;
+      seenRefs.add(key);
+      uniqueRecords.push(rec);
+    }
+
     // Convertir cada registro al array posicional canónico de KEYS (25 columnas)
-    const rows: Row[] = records.map((rec) => {
+    const rows: Row[] = uniqueRecords.map((rec) => {
       return KEYS.map((k: Key) => {
         const v = rec[k];
         if (v === undefined || v === null || v === '') return null;

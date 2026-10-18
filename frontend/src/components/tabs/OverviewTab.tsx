@@ -4,6 +4,16 @@ import { Line } from 'react-chartjs-2';
 import { api } from '../../api/client';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import { KpiCard } from '../common/KpiCard';
+import {
+  AlertOctagon,
+  AlertTriangle,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Target,
+  Users,
+} from 'lucide-react';
 import { cLabel, fN, fPct, fQ } from '../../lib/formatters';
 import type { ColocTipo } from '../../types/api';
 
@@ -217,7 +227,7 @@ export const OverviewTab: React.FC = () => {
           detail={dCart}
           trend={dCartTrend}
           accent="navy"
-          icon="💼"
+          icon={<Briefcase size={15} strokeWidth={2} />}
         />
         <KpiCard
           label="Clientes activos"
@@ -225,7 +235,7 @@ export const OverviewTab: React.FC = () => {
           detail={`${kpis.nCreditos} créditos`}
           trend="flat"
           accent="orange"
-          icon="👥"
+          icon={<Users size={15} strokeWidth={2} />}
         />
         <KpiCard
           label="PAR 1 (mora total)"
@@ -233,7 +243,7 @@ export const OverviewTab: React.FC = () => {
           detail={`${fQ(kpis.par1)} · ${fN(kpis.cliMora)} cli`}
           trend={kpis.cartera && kpis.par1 / kpis.cartera > 0.15 ? 'up' : 'down'}
           accent="red"
-          icon="⚠"
+          icon={<AlertTriangle size={15} strokeWidth={2} />}
         />
         <KpiCard
           label="PAR 30"
@@ -241,7 +251,7 @@ export const OverviewTab: React.FC = () => {
           detail={fQ(kpis.par30)}
           trend={kpis.cartera && kpis.par30 / kpis.cartera > 0.1 ? 'up' : 'down'}
           accent="red"
-          icon="⏱"
+          icon={<Clock size={15} strokeWidth={2} />}
         />
         <KpiCard
           label="Ticket promedio"
@@ -249,7 +259,7 @@ export const OverviewTab: React.FC = () => {
           detail="saldo / cliente"
           trend="flat"
           accent="navy"
-          icon="🎯"
+          icon={<Target size={15} strokeWidth={2} />}
         />
         <KpiCard
           label="Créditos al día"
@@ -257,7 +267,7 @@ export const OverviewTab: React.FC = () => {
           detail={`${fPct(kpis.nCreditos ? kpis.alDia / kpis.nCreditos : 0)} del total`}
           trend="down"
           accent="green"
-          icon="✅"
+          icon={<CheckCircle2 size={15} strokeWidth={2} />}
         />
         <KpiCard
           label="Mora crítica >120d"
@@ -265,7 +275,7 @@ export const OverviewTab: React.FC = () => {
           detail={fQ(kpis.criticaMonto)}
           trend="up"
           accent="red"
-          icon="🔴"
+          icon={<AlertOctagon size={15} strokeWidth={2} />}
         />
         <KpiCard
           label="Cuota mensual esperada"
@@ -273,7 +283,7 @@ export const OverviewTab: React.FC = () => {
           detail="suma de cuotas"
           trend="flat"
           accent="orange"
-          icon="📅"
+          icon={<Calendar size={15} strokeWidth={2} />}
         />
       </div>
 

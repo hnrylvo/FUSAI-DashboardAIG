@@ -6,6 +6,8 @@ import { useDashboardStore } from '../../store/useDashboardStore';
 import { cLabel, fQ, fQ2 } from '../../lib/formatters';
 import type { AttritionRecord, MtxCell, MtxColKey, MtxRowKey } from '../../types/api';
 
+const EMPTY_ATTRITION: AttritionRecord[] = [];
+
 const BUCKET_LABELS: Record<string, string> = {
   dia: 'Al día',
   b1: '1–30',
@@ -47,8 +49,7 @@ export const RetentionTab: React.FC = () => {
   });
 
   const attritionData = attritionQuery.data;
-  const attritionRows = (attritionData && attritionData.valid && attritionData.rows) || [];
-
+  const attritionRows = (attritionData && attritionData.valid && attritionData.rows) ? attritionData.rows : EMPTY_ATTRITION;
   const matrixData = transitionQuery.data;
 
   return (
@@ -97,39 +98,67 @@ export const RetentionTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-slate-100 max-h-[460px]">
-          {attritionQuery.isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-400">Cargando deserciones...</div>
-          ) : !attritionData || !attritionData.valid ? (
-            <div className="p-8 text-center text-xs text-slate-400 italic">
-              Selecciona un rango válido (inicio anterior al final).
-            </div>
-          ) : attritionRows.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400 italic">
-              Sin deserciones al día en el rango seleccionado.
-            </div>
-          ) : (
-            <table className="w-full text-left text-xs border-collapse min-w-[600px]">
-              <thead className="sticky top-0 z-10 bg-[#014F84] text-white uppercase text-[10.5px] tracking-wider font-bold shadow-xs">
+        <div className="overflow-x-auto overflow-y-auto max-h-[500px] rounded-lg border border-slate-100 relative">
+          <table className="w-full text-left text-xs border-collapse min-w-[600px]">
+            <thead className="sticky top-0 z-10 bg-[#014F84] text-white uppercase text-[10.5px] tracking-wider font-bold shadow-xs">
+              <tr>
+                <th className="py-2.5 px-3">Agencia</th>
+                <th className="py-2.5 px-3">Cliente</th>
+                <th className="py-2.5 px-3 text-right">Capital Otorgado</th>
+                <th className="py-2.5 px-3">Producto</th>
+                <th className="py-2.5 px-3">Municipio</th>
+                <th className="py-2.5 px-3">Teléfono</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {attritionQuery.isLoading && !attritionData ? (
+                [...Array(10)].map((_, i) => (
+                  <tr key={`skel-att-${i}`} className="animate-pulse">
+                    <td className="py-2.5 px-3">
+                      <div className="h-4 bg-slate-200/70 rounded w-20" />
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="h-4 bg-slate-200/70 rounded w-32" />
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="h-4 bg-slate-200/70 rounded w-24 ml-auto" />
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="h-4 bg-slate-200/70 rounded w-24" />
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="h-4 bg-slate-200/70 rounded w-20" />
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="h-4 bg-slate-200/70 rounded w-16" />
+                    </td>
+                  </tr>
+                ))
+              ) : !attritionData || !attritionData.valid ? (
                 <tr>
-                  <th className="py-2.5 px-3">Agencia</th>
-                  <th className="py-2.5 px-3">Cliente</th>
-                  <th className="py-2.5 px-3 text-right">Capital Otorgado</th>
-                  <th className="py-2.5 px-3">Producto</th>
-                  <th className="py-2.5 px-3">Municipio</th>
-                  <th className="py-2.5 px-3">Teléfono</th>
+                  <td colSpan={6} className="py-24 text-center text-xs text-slate-400 italic">
+                    Selecciona un rango válido (inicio anterior al final).
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {attritionRows.map((r: AttritionRecord) => (
+              ) : attritionRows.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-24 text-center text-xs text-slate-400 italic">
+                    Sin deserciones al día en el rango seleccionado.
+                  </td>
+                </tr>
+              ) : (
+                attritionRows.map((r: AttritionRecord, idx: number) => (
                   <tr
-                    key={r.cod}
+                    key={r.cod ? r.cod : idx}
                     className="hover:bg-sky-50/50 transition-colors even:bg-slate-50/50 text-slate-700"
                   >
                     <td className="py-2 px-3 font-semibold text-slate-800 whitespace-nowrap">
                       {r.ag || '—'}
                     </td>
-                    <td className="py-2 px-3 whitespace-nowrap font-medium text-slate-900 max-w-[220px] truncate" title={r.cli || ''}>
+                    <td
+                      className="py-2 px-3 whitespace-nowrap font-medium text-slate-900 max-w-[220px] truncate"
+                      title={r.cli || ''}
+                    >
                       {r.cli || '—'}
                     </td>
                     <td className="py-2 px-3 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap">
@@ -145,16 +174,22 @@ export const RetentionTab: React.FC = () => {
                       {r.tel || '—'}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                ))
+              )}
+            </tbody>
+          </table>
+
+          {attritionQuery.isFetching && !attritionQuery.isLoading && (
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-[0.5px] flex items-center justify-center pointer-events-none transition-opacity">
+              <div className="w-5 h-5 border-2 border-[#014F84]/20 border-t-[#014F84] rounded-full animate-spin" />
+            </div>
           )}
         </div>
       </div>
 
       {/* 17 · Transición de mora (matriz de rodamiento) */}
       <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/80 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3 min-h-[36px]">
           <div>
             <h3 className="text-sm font-bold text-[#014F84]">
               17 · Transición de mora (matriz de rodamiento)
@@ -218,11 +253,14 @@ export const RetentionTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-slate-100">
-          {transitionQuery.isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-400">Cargando matriz...</div>
+        <div className="overflow-x-auto overflow-y-auto max-h-[500px] rounded-lg border border-slate-100 min-h-[380px] relative">
+          {transitionQuery.isLoading && !matrixData ? (
+            <div className="min-h-[380px] flex flex-col items-center justify-center p-8 text-xs text-slate-400 gap-2">
+              <div className="w-6 h-6 border-2 border-[#014F84]/20 border-t-[#014F84] rounded-full animate-spin" />
+              <span>Cargando matriz...</span>
+            </div>
           ) : !matrixData || !matrixData.valid ? (
-            <div className="p-8 text-center text-xs text-slate-400 italic">
+            <div className="min-h-[380px] flex items-center justify-center p-8 text-xs text-slate-400 italic">
               Selecciona un rango válido.
             </div>
           ) : (
@@ -239,8 +277,8 @@ export const RetentionTab: React.FC = () => {
 
               return (
                 <table className="w-full text-center text-xs border-collapse min-w-[700px]">
-                  <thead>
-                    <tr className="bg-[#014F84] text-white uppercase text-[10.5px] tracking-wider font-bold">
+                  <thead className="sticky top-0 z-10 bg-[#014F84] text-white uppercase text-[10.5px] tracking-wider font-bold shadow-xs">
+                    <tr>
                       <th className="py-2.5 px-3 text-left">
                         {cLabel(mtxDe || '')} →
                         <br />
@@ -330,6 +368,12 @@ export const RetentionTab: React.FC = () => {
                 </table>
               );
             })()
+          )}
+
+          {transitionQuery.isFetching && !transitionQuery.isLoading && (
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-[0.5px] flex items-center justify-center pointer-events-none transition-opacity">
+              <div className="w-5 h-5 border-2 border-[#014F84]/20 border-t-[#014F84] rounded-full animate-spin" />
+            </div>
           )}
         </div>
 

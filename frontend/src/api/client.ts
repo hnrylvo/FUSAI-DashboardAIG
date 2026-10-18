@@ -36,6 +36,11 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set('Content-Type', 'application/json');
   }
 
+  const token = localStorage.getItem('aig_token');
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
   const res = await fetch(endpoint, {
     ...options,
     headers,
@@ -68,9 +73,14 @@ export const api = {
   auth: {
     getProviders: () => request<ProvidersResponse>('/api/auth/providers'),
     login: (body: { email: string; password: string }) =>
-      request<{ user: User }>('/api/auth/login', {
+      request<{ user: User; token?: string }>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify(body),
+      }),
+    googleLogin: (credential: string) =>
+      request<{ user: User; token?: string }>('/api/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ credential }),
       }),
     logout: () =>
       request<void>('/api/auth/logout', {
@@ -78,7 +88,7 @@ export const api = {
       }),
     getMe: () => request<{ user: User }>('/api/auth/me'),
     simulateGoogle: (body: { email: string; name?: string }) =>
-      request<{ user: User }>('/api/auth/google/simulate', {
+      request<{ user: User; token?: string }>('/api/auth/google/simulate', {
         method: 'POST',
         body: JSON.stringify(body),
       }),

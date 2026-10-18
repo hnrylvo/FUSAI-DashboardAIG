@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import {
   AlertCircle,
+  CheckCircle2,
   Eye,
   EyeOff,
   Lock,
@@ -9,6 +11,7 @@ import {
   Shield,
   TrendingUp,
   UserCheck,
+  X,
   Zap,
 } from 'lucide-react';
 import { api } from '../api/client';
@@ -18,7 +21,7 @@ import type { DemoAccount, ProvidersResponse } from '../types/api';
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, login, simulateGoogleLogin, isLoading, error, clearError } = useAuthStore();
+  const { user, login, googleLogin, simulateGoogleLogin, isLoading, error, clearError } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,6 +30,11 @@ export const LoginPage: React.FC = () => {
   const [isSimulatingGoogle, setIsSimulatingGoogle] = useState(false);
   const [googleSimEmail, setGoogleSimEmail] = useState('director.riesgos@apoyointegral.com.gt');
   const [googleSimName, setGoogleSimName] = useState('Lic. Carlos Morales');
+
+  // Estados locales para feedback de Google OAuth
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // If already logged in, redirect to dashboard
   useEffect(() => {
@@ -46,6 +54,7 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+    setGoogleError(null);
     try {
       await login(email, password);
       navigate('/dashboard', { replace: true });
@@ -54,13 +63,34 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleGoogleClick = () => {
-    if (providers?.google === 'oauth') {
-      window.location.href = '/api/auth/google';
-    } else {
-      // Open simulated Google dialog
-      setIsSimulatingGoogle(true);
+  /**
+   * Manejador de éxito de Google Sign-In: recibe el ID Token criptográfico emitido por Google,
+   * y lo envía al backend para verificación estricta con google-auth-library.
+   */
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      setGoogleError('No se recibió la credencial ID Token de Google.');
+      return;
     }
+
+    setIsGoogleLoading(true);
+    setGoogleError(null);
+    clearError();
+
+    try {
+      await googleLogin(credentialResponse.credential);
+      setToastMessage('Credenciales de Google validadas con éxito. Redirigiendo...');
+      navigate('/dashboard', { replace: true });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al autenticar con Google.';
+      setGoogleError(msg);
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setGoogleError('La ventana de Google se cerró o se rechazó la autorización.');
   };
 
   const handleGoogleSimulateSubmit = async (e: React.FormEvent) => {
@@ -78,6 +108,7 @@ export const LoginPage: React.FC = () => {
     setEmail(demo.email);
     setPassword(demo.password);
     clearError();
+    setGoogleError(null);
   };
 
   const oauthError = searchParams.get('error');
@@ -162,52 +193,73 @@ export const LoginPage: React.FC = () => {
               </p>
             </div>
 
+            {/* Feedback Toast (Éxito) */}
+            {toastMessage && (
+              <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2.5 shadow-2xs animate-fade-in">
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                <span className="font-medium">{toastMessage}</span>
+              </div>
+            )}
+
             {/* Error alerts */}
-            {(error || oauthError) && (
+            {(googleError || error || oauthError) && (
               <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200/80 text-red-700 text-xs flex items-start gap-2.5 shadow-2xs">
                 <AlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
-                <div>
-                  {error ||
+                <div className="flex-1 font-medium">
+                  {googleError ||
+                    error ||
                     (oauthError === 'google_denied'
                       ? 'Acceso con Google cancelado.'
                       : oauthError === 'google_domain'
                         ? 'Tu cuenta de Google no pertenece a un dominio corporativo autorizado.'
                         : 'Error en autenticación.')}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearError();
+                    setGoogleError(null);
+                  }}
+                  className="text-red-400 hover:text-red-700 transition-colors p-0.5 cursor-pointer"
+                  title="Cerrar"
+                >
+                  <X size={14} />
+                </button>
               </div>
             )}
 
             {/* Social Authentication: Sign in with Google */}
             <div className="mb-5">
-              <button
-                type="button"
-                onClick={handleGoogleClick}
-                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-all duration-150 cursor-pointer active:scale-98"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-                <span>
-                  {providers?.google === 'simulated'
-                    ? 'Continuar con Google (Simulación)'
-                    : 'Continuar con Google'}
-                </span>
-              </button>
+              {isGoogleLoading ? (
+                <div className="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center gap-3 text-xs font-semibold text-slate-600 shadow-2xs">
+                  <div className="w-4 h-4 border-2 border-[#014F84]/30 border-t-[#014F84] rounded-full animate-spin" />
+                  <span>Verificando credencial de Google con el servidor...</span>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="w-full flex justify-center items-center overflow-hidden rounded-xl">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                      theme="outline"
+                      size="large"
+                      text="continue_with"
+                      shape="rectangular"
+                      width="380"
+                    />
+                  </div>
+
+                  {providers?.google === 'simulated' && (
+                    <button
+                      type="button"
+                      onClick={() => setIsSimulatingGoogle(true)}
+                      className="w-full text-center text-[11px] text-slate-500 hover:text-[#014F84] underline underline-offset-2 transition-colors cursor-pointer"
+                    >
+                      O usar selector simulado de cuentas demo
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Divider */}

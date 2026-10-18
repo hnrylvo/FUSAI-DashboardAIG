@@ -23,8 +23,8 @@ export const FilterBar: React.FC = () => {
     (filters.atraso?.length || 0);
 
   return (
-    <div className="bg-white border-b border-slate-200/80 px-4 md:px-6 py-2.5 sticky top-[73px] z-30 shadow-xs">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-end gap-2.5 md:gap-3">
+    <div className="bg-white/95 backdrop-blur-xs border-b border-slate-200/80 px-4 md:px-6 lg:px-8 py-2.5 sticky top-[68px] z-20 shadow-xs">
+      <div className="w-full max-w-7xl mx-auto flex flex-wrap items-end gap-2.5 md:gap-3">
         {/* Section title */}
         <div className="flex items-center gap-1.5 text-xs font-bold text-[#014F84] uppercase tracking-wider pb-2 pr-1">
           <Filter size={14} className="text-[#014F84]" />

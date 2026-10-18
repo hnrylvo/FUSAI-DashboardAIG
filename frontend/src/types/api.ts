@@ -18,6 +18,7 @@ export interface DemoAccount {
 
 export interface ProvidersResponse {
   google: 'oauth' | 'simulated' | 'disabled';
+  clientId?: string;
   demoAccounts: DemoAccount[];
 }
 
