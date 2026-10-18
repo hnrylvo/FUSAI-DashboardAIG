@@ -11,7 +11,8 @@
     "build:frontend": "cd frontend && npm run build",
     "build": "npm run build:backend && npm run build:frontend",
     "start": "cd backend && npm run start",
-    "test:parity": "cd backend && npm run test:parity"
+    "test:parity": "cd backend && npm run test:parity",
+    "db:check": "cd backend && npm run db:check"
   },
   "keywords": [
     "portfolio-dashboard",

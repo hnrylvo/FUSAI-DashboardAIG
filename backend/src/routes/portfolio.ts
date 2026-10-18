@@ -1,5 +1,7 @@
 import { Router, type Request } from 'express';
 import { z } from 'zod';
+import { db } from '../db/pool.js';
+import { portfolioRepo } from '../db/repository.js';
 import { store } from '../data/store.js';
 import {
   ATRASO,
@@ -120,3 +122,70 @@ portfolioRouter.post('/retention/transition', (req, res) => {
   const body = parseBody(WithRange, req);
   res.json(computeTransitionMatrix(ctxFor(req, body), body.de, body.a));
 });
+
+/* ---------------------- Base de Datos Directa (On-Premise) ------------ */
+// Estado de la conexión a SQL Server y salud del pool
+portfolioRouter.get('/db/status', async (_req, res) => {
+  const health = db.health();
+  res.json({
+    ok: health.connected,
+    health,
+    readOnly: true,
+    policy: 'STRICT_READ_ONLY_SELECT_ENFORCED',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Sincronización dinámica bajo demanda desde SQL Server
+portfolioRouter.post('/db/refresh', async (_req, res, next) => {
+  try {
+    const result = await store.refreshFromDb();
+    res.json({ ok: true, message: 'Cartera actualizada exitosamente desde SQL Server', ...result, version: store.version });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Catálogo de clientes desde la base de datos (paginado y parametrizado)
+portfolioRouter.get('/db/clients', async (req, res, next) => {
+  try {
+    const page = req.query.page ? Number.parseInt(String(req.query.page), 10) : 1;
+    const pageSize = req.query.pageSize ? Number.parseInt(String(req.query.pageSize), 10) : 20;
+    const search = req.query.search ? String(req.query.search) : undefined;
+    const data = await portfolioRepo.getClients({ page, pageSize, search });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Agencias / Sucursales con saldos de cartera
+portfolioRouter.get('/db/branches', async (_req, res, next) => {
+  try {
+    const branches = await portfolioRepo.getBranches();
+    res.json({ branches });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Asesores de crédito y gestores de cobro
+portfolioRouter.get('/db/officers', async (_req, res, next) => {
+  try {
+    const officers = await portfolioRepo.getLoanOfficers();
+    res.json({ officers });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Historial de cierres / snapshots detectados
+portfolioRouter.get('/db/snapshots', async (_req, res, next) => {
+  try {
+    const snapshots = await portfolioRepo.getSnapshotsLog();
+    res.json({ snapshots });
+  } catch (err) {
+    next(err);
+  }
+});
+

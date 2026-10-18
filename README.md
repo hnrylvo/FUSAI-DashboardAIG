@@ -14,6 +14,10 @@ El repositorio está estructurado en capas limpias y desacopladas:
 │   │   ├── auth/             # Sesiones JWT seguras en cookies HttpOnly (SameSite=Lax)
 │   │   ├── config.ts         # Validación centralizada de variables de entorno
 │   │   ├── data/             # Carga de semilla desde HTML original y persistencia atómica
+│   │   ├── db/               # Integración directa con base de datos on-premises (SQL Server)
+│   │   │   ├── pool.ts       # Pool seguro con reconexión, health-checks y TLS obligatorio
+│   │   │   ├── readonly.ts   # Guardia de solo lectura estricta (rechaza mutaciones)
+│   │   │   └── repository.ts # Repositorio de consultas SELECT parametrizadas
 │   │   ├── engine/           # Motor de cálculo matemático (1:1 con el HTML original)
 │   │   │   ├── core.ts       # Constantes KEYS canónicas, helpers de acceso g(r,k) y agregación
 │   │   │   ├── filters.ts    # Filtros globales (7 originales) y contexto memoizado Ctx
@@ -27,6 +31,7 @@ El repositorio está estructurado en capas limpias y desacopladas:
 │   │   ├── app.ts            # Configuración de Express, Helmet CSP y CORS
 │   │   └── server.ts         # Arranque del servidor con TZ=America/Guatemala
 │   ├── scripts/
+│   │   ├── db-check.ts       # Diagnóstico de conexión TCP, TLS y permisos de base de datos
 │   │   ├── parity.ts         # Test de paridad matemática (compara contra el script original)
 │   │   └── hash-password.ts  # Generador de hashes bcrypt para cuentas corporativas
 │   ├── .env.example          # Plantilla documentada de variables de entorno
@@ -119,6 +124,53 @@ En entorno de desarrollo se incluyen dos cuentas preconfiguradas con botones de 
 | :--- | :--- | :--- | :--- |
 | **Administrador** | `riesgos@apoyointegral.com.gt` | `Cartera2026!` | Visualización + Carga de Cierres |
 | **Analista** | `direccion@apoyointegral.com.gt` | `Direccion2026!` | Visualización y Reportes |
+
+---
+
+## 🗄️ Conexión Directa a Base de Datos On-Premises (SQL Server)
+
+El backend de Node.js integra un cliente de base de datos de alto rendimiento y grado bancario para sincronizar dinámicamente la cartera activa y los catálogos institucionales directamente desde el servidor on-premises de Apoyo Integral Guatemala (`192.168.1.81`).
+
+### 1. Política Estricta de Solo Lectura (Zero-Write Policy)
+- **Defensa en Profundidad:** El backend aplica una guardia estricta (`src/db/readonly.ts`) que analiza todo texto SQL antes de enviarlo al socket de red. Rechaza de forma inmediata e incondicional cualquier sentencia que no sea un `SELECT` (o `WITH ... SELECT`) y bloquea palabras clave como `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `TRUNCATE`, `EXEC`, `MERGE` o sentencias transaccionales (`BEGIN`, `COMMIT`, `ROLLBACK`).
+- **Permisos de Base de Datos:** El usuario corporativo asignado (`HenryAIG`) está restringido a permisos estrictos de consulta (`db_datareader` en `RESUMENAIG`).
+- **Consultas Parametrizadas:** Todos los filtros y parámetros dinámicos se transmiten mediante parámetros tipados (`sql.NVarChar`, `sql.Int`), eliminando por diseño cualquier riesgo de inyección SQL.
+
+### 2. Seguridad en Capa de Transporte (Cifrado End-to-End TLS / SSL)
+- **Cifrado de Socket DB:** La conexión con SQL Server (`192.168.1.81:1433`) negocia obligatoriamente cifrado `TLSv1.2` (`DB_ENCRYPT=true` o modo `strict` para TDS 8.0).
+- **Validación de Cifrado en Servidor:** Al conectar, el pool verifica contra `sys.dm_exec_connections` que `encrypt_option = TRUE`.
+- **Credenciales Seguras:** Las credenciales nunca están presentes en el código fuente; se leen exclusivamente desde variables de entorno (`backend/.env`), excluido del repositorio mediante `.gitignore`.
+- **API Segura:** La capa API admite ejecución nativa sobre HTTPS (`HTTPS_ENABLED=true`) o terminación TLS mediante reverse proxy corporativo, transmitiendo la sesión JWT mediante cookies `HttpOnly; SameSite=Lax`.
+
+### 3. Pool de Conexiones & Resiliencia
+- **Pool de Conexiones:** Mínimo de 2 y máximo de 10 conexiones simultáneas (`DB_POOL_MIN`, `DB_POOL_MAX`), reutilizando sockets y evitando sobrecargar el motor de base de datos.
+- **Reconexión Automática con Backoff Exponencial:** Si la red local o la VPN fluctúan, el cliente reintenta la conexión hasta 5 veces con intervalos de retroceso progresivo y jitter aleatorio.
+- **Health-Checks Periódicos:** Sondeo continuo mediante `SELECT 1` para detectar conexiones inactivas y medir la latencia en tiempo real.
+- **Graceful Shutdown:** Al recibir señales `SIGINT` o `SIGTERM`, el servidor drena ordenadamente el pool sin interrumpir lecturas activas.
+
+### 4. Diagnóstico de Conexión y Catálogo de BD
+Para validar la conectividad, el cifrado TLS y los permisos sin necesidad de levantar el servidor web:
+
+```bash
+# Diagnóstico rápido de conexión y salud del pool
+npm run db:check
+
+# Exploración del catálogo de tablas y vistas en la base de datos
+npm run db:check -- --discover
+```
+
+### 5. Guía de Red, VPN y Firewall (LAN 192.168.1.x)
+Si el diagnóstico reporta `TCP 192.168.1.81:1433 NO alcanzable`:
+1. **Verificar Conexión de Red:** Asegúrese de estar conectado físicamente a la red LAN de la oficina o con la VPN institucional activa (acceso a la subred `192.168.1.0/24`).
+2. **Ruta IP Local:** Compruebe que su adaptador de red tiene ruta hacia el gateway:
+   ```powershell
+   Test-NetConnection -ComputerName 192.168.1.81 -Port 1433
+   ```
+3. **Regla de Firewall de Windows:** En el servidor de base de datos, el puerto `1433 TCP` debe estar permitido en el perfil de red privada/dominio:
+   ```powershell
+   New-NetFirewallRule -DisplayName "SQL Server (TCP 1433)" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
+   ```
+4. **Habilitación de TCP/IP en SQL Server Configuration Manager:** En el servidor on-premises, verifique que en *SQL Server Network Configuration -> Protocols for [Instance]*, el protocolo `TCP/IP` esté en estado **Enabled** y escuchando en el puerto `1433`.
 
 ---
 
@@ -229,6 +281,12 @@ La aplicación completa estará disponible en `http://localhost:4000/`.
 - `POST /api/portfolio/operations/pre-collection` — Alertas de precobro (primera cuota próxima).
 - `POST /api/portfolio/retention/attrition` — Deserción de clientes al día entre cierres.
 - `POST /api/portfolio/retention/transition` — Matriz de rodamiento de mora (clientes o saldo Q).
+- `GET /api/portfolio/db/status` — Estado de salud del pool, latencia en ms, verificación TLS y confirmación de política de solo lectura.
+- `POST /api/portfolio/db/refresh` — Sincronización dinámica bajo demanda desde SQL Server (actualiza el cierre activo sin reiniciar el servicio).
+- `GET /api/portfolio/db/clients` — Paginación y búsqueda parametrizada de registros de clientes (`page`, `pageSize`, `search`).
+- `GET /api/portfolio/db/branches` — Listado de agencias con métricas agregadas de cartera y saldo total.
+- `GET /api/portfolio/db/officers` — Catálogo de asesores y gestores de cobro.
+- `GET /api/portfolio/db/snapshots` — Historial de cortes y snapshots de análisis detectados en la base de datos.
 
 ### `/api/upload` *(Requiere rol Administrador)*
 - `POST /api/upload` — Carga masiva de archivos `.xls` o `.xlsx` con detección inteligente de fecha de corte o sobreescritura manual.

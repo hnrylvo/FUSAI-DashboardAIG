@@ -3,6 +3,8 @@ import path from 'node:path';
 import { config } from '../config.js';
 import { type Dataset, KEYS, type Row } from '../engine/index.js';
 
+import { portfolioRepo } from '../db/repository.js';
+
 interface RawSeed {
   generated: string;
   keys: string[];
@@ -42,6 +44,9 @@ class DataStore {
   private dataset: Dataset = { generated: '', cierres: {} };
   private uploads: UploadedFile = { cierres: {} };
   private seedCierres = new Set<string>();
+  private dbCierres = new Set<string>();
+  private refreshTimer: NodeJS.Timeout | null = null;
+
   /** Se incrementa con cada cambio; útil para invalidar caches en clientes. */
   version = 1;
   updatedAt = new Date().toISOString();
@@ -50,7 +55,8 @@ class DataStore {
     return path.join(config.dataDir, 'uploads.json');
   }
 
-  load() {
+  async load() {
+    // 1. Cargar datos semilla si existen (para mantener histórico de paridad)
     const seed = loadSeedFromHtml(config.seedHtmlPath);
     const cierres: Record<string, Row[]> = {};
     if (seed) {
@@ -60,14 +66,61 @@ class DataStore {
       }
       console.log(`[data] Semilla: ${Object.keys(seed.cierres).length} cierres desde ${config.seedHtmlPath}`);
     } else {
-      console.warn(`[data] No se encontró semilla en ${config.seedHtmlPath}. Se inicia vacío; cargue cierres vía /api/upload.`);
+      console.warn(`[data] No se encontró semilla en ${config.seedHtmlPath}.`);
     }
+
+    // 2. Cargar cierres subidos previamente en disco
     if (fs.existsSync(this.uploadsFile)) {
-      this.uploads = JSON.parse(fs.readFileSync(this.uploadsFile, 'utf8')) as UploadedFile;
-      for (const [c, u] of Object.entries(this.uploads.cierres)) cierres[c] = u.rows;
-      console.log(`[data] Persistidos: ${Object.keys(this.uploads.cierres).length} cierres cargados por usuarios`);
+      try {
+        this.uploads = JSON.parse(fs.readFileSync(this.uploadsFile, 'utf8')) as UploadedFile;
+        for (const [c, u] of Object.entries(this.uploads.cierres)) cierres[c] = u.rows;
+        console.log(`[data] Persistidos: ${Object.keys(this.uploads.cierres).length} cierres cargados por usuarios`);
+      } catch (e) {
+        console.error('[data] Error al leer uploads.json:', e);
+      }
     }
-    this.dataset = { generated: seed?.generated ?? new Date().toISOString().slice(0, 16).replace('T', ' '), cierres };
+
+    this.dataset = {
+      generated: seed?.generated ?? new Date().toISOString().slice(0, 16).replace('T', ' '),
+      cierres,
+    };
+
+    // 3. Si la fuente configurada es database, sincronizar directamente desde SQL Server
+    if (config.dataSource === 'database' || config.db.host) {
+      await this.refreshFromDb().catch((err) => {
+        console.warn(`[data] Sincronización inicial con BD no completada (${(err as Error).message}). Se utilizarán datos en memoria.`);
+      });
+
+      // Programar refresco automático si está configurado
+      if (config.db.refreshMinutes > 0 && !this.refreshTimer) {
+        this.refreshTimer = setInterval(() => {
+          void this.refreshFromDb().catch((err) => {
+            console.error('[data] Error en refresco automático desde BD:', (err as Error).message);
+          });
+        }, config.db.refreshMinutes * 60_000);
+        this.refreshTimer.unref();
+      }
+    }
+  }
+
+  /**
+   * Extrae la cartera activa directamente de SQL Server y la incorpora al dataset.
+   */
+  async refreshFromDb(): Promise<{ cierre: string; rows: number }> {
+    console.log('[data] Sincronizando cartera activa desde SQL Server (on-premise)...');
+    const { cierre, rows } = await portfolioRepo.getActivePortfolioRows();
+    this.dataset = {
+      ...this.dataset,
+      cierres: {
+        ...this.dataset.cierres,
+        [cierre]: rows,
+      },
+    };
+    this.dbCierres.add(cierre);
+    this.version++;
+    this.updatedAt = new Date().toISOString();
+    console.log(`[data] Sincronización exitosa: cierre ${cierre} con ${rows.length} créditos activos.`);
+    return { cierre, rows: rows.length };
   }
 
   get(): Dataset {
@@ -94,12 +147,13 @@ class DataStore {
       .sort()
       .map((c) => {
         const u = this.uploads.cierres[c];
+        const isDb = this.dbCierres.has(c);
         return {
           cierre: c,
           rows: this.dataset.cierres[c].length,
-          origin: u ? ('upload' as const) : ('seed' as const),
-          uploadedAt: u?.uploadedAt ?? null,
-          uploadedBy: u?.uploadedBy ?? null,
+          origin: isDb ? ('database' as const) : u ? ('upload' as const) : ('seed' as const),
+          uploadedAt: u?.uploadedAt ?? (isDb ? this.updatedAt : null),
+          uploadedBy: u?.uploadedBy ?? (isDb ? 'SQL Server (on-premise)' : null),
         };
       });
   }
@@ -113,3 +167,4 @@ class DataStore {
 }
 
 export const store = new DataStore();
+
