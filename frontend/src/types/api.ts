@@ -79,6 +79,17 @@ export interface MetaResponse {
   atraso: AtrasoMetaItem[];
 }
 
+export interface SyncResponse {
+  ok: boolean;
+  message: string;
+  cierre: string;
+  rows: number;
+  version: number;
+  updatedAt: string;
+  generated: string;
+  cierres: CierreSourceItem[];
+}
+
 export interface FilterPayload {
   sel: Partial<Record<FilterKey, string[]>>;
   atraso: string[];

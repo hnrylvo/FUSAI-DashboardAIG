@@ -6,7 +6,6 @@ import { useDashboardStore } from '../store/useDashboardStore';
 import { Header } from '../components/common/Header';
 import { FilterBar } from '../components/common/FilterBar';
 import { Sidebar } from '../components/common/Sidebar';
-import { UploadModal } from '../components/common/UploadModal';
 import { OverviewTab } from '../components/tabs/OverviewTab';
 import { CompositionTab } from '../components/tabs/CompositionTab';
 import { RankingsTab } from '../components/tabs/RankingsTab';
@@ -113,9 +112,6 @@ export const DashboardPage: React.FC = () => {
           </p>
         </footer>
       </div>
-
-      {/* Dynamic XLSX Upload Modal */}
-      <UploadModal />
     </div>
   );
 };

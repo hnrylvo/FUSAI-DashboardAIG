@@ -1,4 +1,4 @@
-import { Router, type Request } from 'express';
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import { z } from 'zod';
 import { db } from '../db/pool.js';
 import { portfolioRepo } from '../db/repository.js';
@@ -137,14 +137,30 @@ portfolioRouter.get('/db/status', async (_req, res) => {
 });
 
 // Sincronización dinámica bajo demanda desde SQL Server
-portfolioRouter.post('/db/refresh', async (_req, res, next) => {
+const syncHandler = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await store.refreshFromDb();
-    res.json({ ok: true, message: 'Cartera actualizada exitosamente desde SQL Server', ...result, version: store.version });
+    const ds = store.get();
+    res.json({
+      ok: true,
+      message: 'Cartera actualizada exitosamente desde SQL Server',
+      cierre: result.cierre,
+      rows: result.rows,
+      version: store.version,
+      updatedAt: store.updatedAt,
+      generated: ds.generated,
+      cierres: store.sources(),
+    });
   } catch (err) {
-    next(err);
+    next(new HttpError(500, 'Error al sincronizar con el servidor de base de datos.', 'DB_SYNC_ERROR', (err as Error).message));
   }
-});
+};
+
+portfolioRouter.post('/sync', syncHandler);
+portfolioRouter.get('/sync', syncHandler);
+portfolioRouter.post('/refresh', syncHandler);
+portfolioRouter.get('/refresh', syncHandler);
+portfolioRouter.post('/db/refresh', syncHandler);
 
 // Catálogo de clientes desde la base de datos (paginado y parametrizado)
 portfolioRouter.get('/db/clients', async (req, res, next) => {

@@ -171,8 +171,7 @@ details.info summary{cursor:pointer;font-weight:700;color:var(--azul);font-size:
     <label>Cierre de análisis</label>
     <select id="cierreSel" class="cierre"></select>
   </div>
-  <button class="btn btn-naranja" id="btnUpload">⬆ Actualizar cierre</button>
-  <input type="file" id="fileInput" accept=".xls,.xlsx" class="hidden" multiple>
+  <button class="btn btn-naranja" id="btnUpload">🔄 Actualizar cierre</button>
   <div class="gen">Generado: <span id="genDate"></span><br><span id="cierreCount"></span> cierres cargados</div>
 </header>
 
@@ -858,20 +857,33 @@ function parseWorkbook(wb,fname){
   return {cierre,rows};
 }
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
-$('#btnUpload').addEventListener('click',()=>$('#fileInput').click());
-$('#fileInput').addEventListener('change',async e=>{
-  const files=[...e.target.files]; let ok=0, added=[];
-  for(const f of files){
-    try{
-      const buf=await f.arrayBuffer();
-      const wb=XLSX.read(new Uint8Array(buf),{type:'array',cellDates:true});
-      const {cierre,rows}=parseWorkbook(wb,f.name);
-      CIERRES[cierre]=rows; ok++; added.push(cLabel(cierre));
-    }catch(err){ console.error(err); toast('Error en '+f.name+': '+err.message); }
+$('#btnUpload').addEventListener('click', async () => {
+  const btn = $('#btnUpload');
+  if (btn.disabled) return;
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Actualizando...';
+  try {
+    const res = await fetch('/api/portfolio/sync', { method: 'POST', credentials: 'include' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.ok) {
+      if (data.cierre) STATE.cierre = data.cierre;
+      if (data.generated) RAW.generated = data.generated;
+      renderFilters();
+      fillSelectors();
+      render();
+      toast('✓ Cierre actualizado exitosamente desde el servidor');
+    } else {
+      throw new Error(data.message || 'Error en respuesta');
+    }
+  } catch (err) {
+    console.error('Error al sincronizar con el servidor:', err);
+    toast('✕ Error al sincronizar con el servidor de base de datos');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
   }
-  if(ok){ STATE.cierre=lastCierre(); renderFilters(); fillSelectors(); render();
-    toast(`✓ ${ok} cierre(s) cargado(s): ${added.join(', ')}`); }
-  e.target.value='';
 });
 
 /* =================== INIT =================== */

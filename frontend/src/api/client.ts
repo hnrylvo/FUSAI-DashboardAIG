@@ -12,6 +12,7 @@ import type {
   ProvidersResponse,
   RankingBucket,
   RankingResponse,
+  SyncResponse,
   UploadResponse,
   User,
 } from '../types/api';
@@ -96,6 +97,10 @@ export const api = {
 
   portfolio: {
     getMeta: () => request<MetaResponse>('/api/portfolio/meta'),
+    syncPortfolio: () =>
+      request<SyncResponse>('/api/portfolio/sync', {
+        method: 'POST',
+      }),
 
     getOverview: (cierre: string, filters: FilterPayload) =>
       request<OverviewResponse>('/api/portfolio/overview', {

@@ -111,6 +111,7 @@ class DataStore {
     const { cierre, rows } = await portfolioRepo.getActivePortfolioRows();
     this.dataset = {
       ...this.dataset,
+      generated: new Date().toISOString().slice(0, 16).replace('T', ' '),
       cierres: {
         ...this.dataset.cierres,
         [cierre]: rows,
