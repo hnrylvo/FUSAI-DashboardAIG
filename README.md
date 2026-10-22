@@ -17,13 +17,12 @@
 1. [Arquitectura del Sistema](#-arquitectura-del-sistema)
 2. [Autenticación Corporativa Exclusiva (Google Sign-In)](#-autenticación-corporativa-exclusiva-google-sign-in)
 3. [Verificación de Paridad Matemática (100% Idéntico)](#-verificación-de-paridad-matemática-100-idéntico)
-4. [Estandarización y Normalización de Filtros](#-estandarización-y-normalización-de-filtros)
-5. [Conexión Directa a Base de Datos On-Premises (SQL Server)](#-conexión-directa-a-base-de-datos-on-premises-sql-server)
-6. [Sistema de Diseño & Experiencia de Usuario (UI/UX)](#-sistema-de-diseño--experiencia-de-usuario-uiux)
-7. [Instalación y Configuración](#-instalación-y-configuración)
-8. [Guía de Scripts Disponibles](#-guía-de-scripts-disponibles)
-9. [Catálogo de Endpoints API](#-catálogo-de-endpoints-api)
-10. [Compilación y Despliegue en Producción](#-compilación-y-despliegue-en-producción)
+4. [Conexión Directa a Base de Datos On-Premises (SQL Server)](#-conexión-directa-a-base-de-datos-on-premises-sql-server)
+5. [Sistema de Diseño & Experiencia de Usuario (UI/UX)](#-sistema-de-diseño--experiencia-de-usuario-uiux)
+6. [Instalación y Configuración](#-instalación-y-configuración)
+7. [Guía de Scripts Disponibles](#-guía-de-scripts-disponibles)
+8. [Catálogo de Endpoints API](#-catálogo-de-endpoints-api)
+9. [Compilación y Despliegue en Producción](#-compilación-y-despliegue-en-producción)
 
 ---
 
@@ -127,14 +126,11 @@ La autenticación ha sido completamente estandarizada en un flujo exclusivo con 
 1. **Flujo Criptográfico sin Contraseñas:**
    - El botón oficial `@react-oauth/google` emite un ID Token criptográfico firmado por Google.
    - El backend (`POST /api/auth/google`) valida el token directamente con `google-auth-library` contra las claves públicas de Google, verificando emisor (`accounts.google.com`), audiencia (`GOOGLE_CLIENT_ID`), expiración y correo verificado.
-   - **Restricción de Dominio Corporativo:** Solo se autorizan cuentas pertenecientes a los dominios configurados en `GOOGLE_ALLOWED_DOMAINS` (por ejemplo, `@apoyointegral.com.gt`).
+   - **Restricción de Dominio Corporativo:** Solo se autorizan cuentas pertenecientes a los dominios configurados en `GOOGLE_ALLOWED_DOMAINS`.
 
 2. **Gestión de Sesión Segura:**
    - La sesión se firma con JWT (HS256) y se emite dentro de una cookie `HttpOnly`, con atributos `Secure` y directiva `SameSite=Lax`.
    - El perfil de usuario almacena exclusivamente los datos de identidad provistos por Google: `name`, `email` y `picture` (avatar).
-
-3. **Acceso Homogéneo:**
-   - Se eliminaron las jerarquías de roles complejas (`admin`/`analyst`). Todo colaborador validado con su cuenta institucional de Google accede de forma inmediata e íntegra a todas las métricas, herramientas de consulta y sincronización de cartera.
 
 ---
 
@@ -171,32 +167,12 @@ Paridad: 2428/2428 comprobaciones idénticas al HTML original.
 
 ---
 
-## 🎯 Estandarización y Normalización de Filtros
-
-### Consolidación del Filtro "SEXO"
-Para resolver discrepancias históricas en la base de datos (donde coexistían registros marcados como `F`, `FEMENINO`, `M` y `MASCULINO`), se implementó una normalización bidireccional transparente:
-
-1. **Opciones en la Interfaz (UI):**
-   El dropdown muestra estrictamente **dos opciones**:
-   - `FEMENINO`
-   - `MASCULINO`
-   El contador inferior refleja fielmente `"0 de 2 seleccionados"` y la búsqueda interna opera únicamente sobre estas dos alternativas.
-
-2. **Normalización en Motor de Filtrado (Backend y Frontend):**
-   La función `normalizeGender` clasifica de forma transparente:
-   - `'M'` y `'MASCULINO'` $\rightarrow$ Coinciden con la selección **MASCULINO**.
-   - `'F'` y `'FEMENINO'` $\rightarrow$ Coinciden con la selección **FEMENINO**.
-   - Ningún registro de la base de datos es modificado o destruido. Si se seleccionan ambas o ninguna, se computa la totalidad de la cartera.
-
----
-
 ## 🗄️ Conexión Directa a Base de Datos On-Premises (SQL Server)
 
-El backend de Node.js integra un cliente de base de datos de grado institucional para comunicarse directamente con la instancia de SQL Server en la red local (`192.168.1.81:1433/RESUMENAIG`).
+El backend de Node.js integra un cliente de base de datos de grado institucional para comunicarse directamente con la instancia de SQL Server en la red local.
 
 ### 1. Política Estricta de Solo Lectura (Zero-Write Guard)
 - **Defensa en Profundidad:** El módulo `src/db/readonly.ts` analiza sintácticamente cada consulta antes de su transmisión al socket. Bloquea e interrumpe de forma inmediata sentencias que no sean `SELECT` o `WITH ... SELECT`, rechazando `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `TRUNCATE`, `EXEC` o `MERGE`.
-- **Rol de Usuario:** El usuario asignado (`HenryAIG`) opera bajo el esquema de permisos `db_datareader`.
 - **Parametrización Tipada:** Todas las consultas aplican tipos nativos de TDS (`sql.NVarChar`, `sql.Int`), mitigando por diseño cualquier intento de inyección de código.
 
 ### 2. Cifrado TLS y Resiliencia de Red
@@ -260,25 +236,25 @@ SESSION_TTL_HOURS=8
 DATA_SOURCE=database
 
 # Conexión a SQL Server On-Premises
-DB_HOST=192.168.1.81
-DB_PORT=1433
-DB_NAME=RESUMENAIG
-DB_USER=HenryAIG
-DB_PASSWORD=tu_contraseña_de_base_de_datos
-DB_ENCRYPT=true
-DB_TRUST_SERVER_CERT=true
-DB_READ_ONLY_INTENT=true
+DB_HOST= Servidor
+DB_PORT= Puerto
+DB_NAME= TablenNme
+DB_USER= User
+DB_PASSWORD=t u_contraseña_de_base_de_datos
+DB_ENCRYPT= true
+DB_TRUST_SERVER_CERT= true
+DB_READ_ONLY_INTENT= true
 
 # Google OAuth 2.0
-GOOGLE_CLIENT_ID=599941958749-flp47tme277h6686v407otfmh6u6jsos.apps.googleusercontent.com
+GOOGLE_CLIENT_ID=tu_google_client_id
 GOOGLE_CLIENT_SECRET=tu_client_secret_de_google
-GOOGLE_ALLOWED_DOMAINS=apoyointegral.com.gt,fusai.org,gmail.com
+GOOGLE_ALLOWED_DOMAINS=dominios_permitidos.com
 ```
 
 #### Frontend (`frontend/.env`)
 Crear el archivo `frontend/.env`:
 ```env
-VITE_GOOGLE_CLIENT_ID=599941958749-flp47tme277h6686v407otfmh6u6jsos.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=tu_google_client_id
 ```
 
 ### 4. Ejecutar en Modo Desarrollo
