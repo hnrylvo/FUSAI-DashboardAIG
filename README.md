@@ -1,306 +1,353 @@
 # Dashboard de Cartera · Apoyo Integral Guatemala, S.A. (Grupo FUSAI)
 
-> **Enterprise-grade Portfolio & Credit Risk Analytics Platform** migrado y desacoplado del archivo legado `Dashboard_Cartera_AIG.html`, preservando el **100% de la lógica matemática, reglas de negocio, filtros globales y transformaciones de datos** con una arquitectura desacoplada full-stack y una interfaz de usuario moderna en React 19 + TypeScript.
+![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwindcss&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-v20+-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.21-000000?logo=express&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL_Server-On--Premises-CC292B?logo=microsoftsqlserver&logoColor=white)
+![Parity](https://img.shields.io/badge/Paridad_Matemática-2428%2F2428_Checks-success)
+
+> **Enterprise-grade Portfolio & Credit Risk Analytics Platform** desarrollada para **Apoyo Integral Guatemala, S.A. (Grupo FUSAI)**. Plataforma modular de analítica financiera y riesgo crediticio con autenticación corporativa exclusiva mediante **Google Workspace**, sincronización directa en caliente con **Microsoft SQL Server on-premises** y un motor de cálculo financiero que garantiza el **100% de paridad matemática** frente a las reglas de negocio institucionales.
 
 ---
 
-## 🏛 Arquitectura del Proyecto
+## 📑 Tabla de Contenidos
+1. [Arquitectura del Sistema](#-arquitectura-del-sistema)
+2. [Autenticación Corporativa Exclusiva (Google Sign-In)](#-autenticación-corporativa-exclusiva-google-sign-in)
+3. [Verificación de Paridad Matemática (100% Idéntico)](#-verificación-de-paridad-matemática-100-idéntico)
+4. [Estandarización y Normalización de Filtros](#-estandarización-y-normalización-de-filtros)
+5. [Conexión Directa a Base de Datos On-Premises (SQL Server)](#-conexión-directa-a-base-de-datos-on-premises-sql-server)
+6. [Sistema de Diseño & Experiencia de Usuario (UI/UX)](#-sistema-de-diseño--experiencia-de-usuario-uiux)
+7. [Instalación y Configuración](#-instalación-y-configuración)
+8. [Guía de Scripts Disponibles](#-guía-de-scripts-disponibles)
+9. [Catálogo de Endpoints API](#-catálogo-de-endpoints-api)
+10. [Compilación y Despliegue en Producción](#-compilación-y-despliegue-en-producción)
 
-El repositorio está estructurado en capas limpias y desacopladas:
+---
 
-```
-├── backend/                  # API RESTful en Node.js + Express + TypeScript
-│   ├── data/                 # Semilla canónica de cierres (seed.json) y almacenamiento de reportes
+## 🏛 Arquitectura del Sistema
+
+El proyecto está diseñado bajo un modelo desacoplado full-stack en TypeScript, habiendo eliminado cualquier dependencia de archivos monolíticos HTML y estructurado en capas mantenibles, testeables y de alta cohesión:
+
+```text
+├── backend/                             # API RESTful en Node.js + Express + TypeScript
+│   ├── data/
+│   │   └── seed.json                    # Cierres canónicos semilla (1.53 MB, 9 cortes)
 │   ├── src/
-│   │   ├── auth/             # Sesiones JWT seguras en cookies HttpOnly (SameSite=Lax)
-│   │   ├── config.ts         # Validación centralizada de variables de entorno
-│   │   ├── data/             # Carga de semilla desde seed.json y persistencia atómica
-│   │   ├── db/               # Integración directa con base de datos on-premises (SQL Server)
-│   │   │   ├── pool.ts       # Pool seguro con reconexión, health-checks y TLS obligatorio
-│   │   │   ├── readonly.ts   # Guardia de solo lectura estricta (rechaza mutaciones)
-│   │   │   └── repository.ts # Repositorio de consultas SELECT parametrizadas
-│   │   ├── engine/           # Motor de cálculo matemático (1:1 con el motor analítico original)
-│   │   │   ├── core.ts       # Constantes KEYS canónicas, helpers de acceso g(r,k) y agregación
-│   │   │   ├── filters.ts    # Filtros globales (7 originales) y contexto memoizado Ctx
-│   │   │   ├── overview.ts   # KPIs, tendencias mensuales y colocación
-│   │   │   ├── composition.ts# Distribuciones por producto y rangos de saldo
-│   │   │   ├── operations.ts # Rankings TOP, días de pago (1-31), vencimientos y precobro
-│   │   │   ├── retention.ts  # Deserción de clientes y matriz de rodamiento de mora
-│   │   │   └── ingest.ts     # Ingesta y parseo de libros de Excel (.xls / .xlsx)
-│   │   ├── http/             # Manejo estandarizado de errores HTTP y validación Zod
-│   │   ├── routes/           # Endpoints modulares (/api/auth, /api/portfolio, /api/upload)
-│   │   ├── app.ts            # Configuración de Express, Helmet CSP y CORS
-│   │   └── server.ts         # Arranque del servidor con TZ=America/Guatemala
+│   │   ├── auth/                        # Sesiones seguras JWT en cookies HttpOnly (SameSite=Lax)
+│   │   │   └── session.ts               # Firmado criptográfico HS256, lectura y guardias
+│   │   ├── config.ts                    # Validación centralizada de variables de entorno
+│   │   ├── data/
+│   │   │   ├── store.ts                 # Store atómico en memoria con versionado y persistencia
+│   │   │   └── users.ts                 # Modelado de usuario Google Identity
+│   │   ├── db/                          # Conexión directa a SQL Server On-Premises (RESUMENAIG)
+│   │   │   ├── pool.ts                  # Pool resiliente TLSv1.2 con backoff exponencial y health-check
+│   │   │   ├── readonly.ts              # Guardia estricta de solo lectura (rechaza mutaciones)
+│   │   │   └── repository.ts            # Consultas SELECT parametrizadas y normalización canónica
+│   │   ├── engine/                      # Motor analítico y financiero (25 columnas canónicas)
+│   │   │   ├── core.ts                  # Columnas canónicas KEYS, helpers de agregación g(r,k)
+│   │   │   ├── filters.ts               # Filtros globales, contexto memoizado Ctx y normalización
+│   │   │   ├── overview.ts              # Cálculo de KPIs (Cartera, PAR1, PAR30) y series mensuales
+│   │   │   ├── composition.ts           # Distribuciones por producto y tramos de saldo
+│   │   │   ├── operations.ts            # Rankings TOP 10, días de pago (1-31), vencimientos y precobro
+│   │   │   ├── retention.ts             # Deserción de clientes y matriz de rodamiento de mora
+│   │   │   └── ingest.ts                # Ingesta y parseo seguro de libros Excel (.xls / .xlsx)
+│   │   ├── http/                        # Manejador de errores RFC 7807 y validación Zod
+│   │   ├── routes/                      # Endpoints modulares (/api/auth, /api/portfolio, /api/upload)
+│   │   ├── app.ts                       # Configuración de Express, Helmet CSP y CORS
+│   │   └── server.ts                    # Servidor con zona horaria America/Guatemala
 │   ├── scripts/
-│   │   ├── fixtures/         # Fixture del script legacy para verificación de paridad
-│   │   ├── db-check.ts       # Diagnóstico de conexión TCP, TLS y permisos de base de datos
-│   │   ├── parity.ts         # Test de paridad matemática (compara contra el script de referencia)
-│   │   └── hash-password.ts  # Generador de hashes bcrypt para cuentas corporativas
-│   ├── .env.example          # Plantilla documentada de variables de entorno
+│   │   ├── fixtures/legacyScript.js     # Script de referencia canónica para test de paridad
+│   │   ├── parity.ts                    # Suite de 2,428 comprobaciones matemáticas automatizadas
+│   │   └── db-check.ts                  # Diagnóstico de socket TCP, handshake TLS y permisos DB
+│   ├── .env.example
 │   ├── package.json
 │   └── tsconfig.json
 │
-├── frontend/                 # Single Page Application en React 19 + Vite 8 + Tailwind CSS v4
+├── frontend/                            # Single Page Application en React 19 + Vite 8 + Tailwind CSS v4
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── charts/       # CarteraTrendChart, MoraTrendChart, ColocacionChart, PaymentDaysChart, CompositionDoughnutChart
-│   │   │   ├── layout/       # Header, Sidebar, FilterBar, Footer, LayoutWrapper
-│   │   │   └── ui/           # Button, Card, Badge, Skeleton, KpiCard, CustomChartLegend, MultiSelectDropdown
-│   │   ├── hooks/            # usePortfolioData, useFilters, usePagination
+│   │   │   ├── charts/                  # Componentes Chart.js encapsulados y responsivos
+│   │   │   │   ├── CarteraTrendChart.tsx
+│   │   │   │   ├── MoraTrendChart.tsx
+│   │   │   │   ├── ColocacionChart.tsx
+│   │   │   │   ├── PaymentDaysChart.tsx
+│   │   │   │   └── CompositionDoughnutChart.tsx
+│   │   │   ├── layout/                  # Estructura del layout institucional
+│   │   │   │   ├── Header.tsx           # Barra institucional con perfil Google y botón de sincronización DB
+│   │   │   │   ├── Sidebar.tsx          # Drawer lateral colapsable con navegación por vistas
+│   │   │   │   ├── FilterBar.tsx        # Barra fija de filtros globales con multiselección
+│   │   │   │   ├── Footer.tsx           # Pie institucional FUSAI
+│   │   │   │   └── LayoutWrapper.tsx    # Contenedor orquestador
+│   │   │   └── ui/                      # Sistema de componentes de diseño atómico
+│   │   │       ├── Button.tsx
+│   │   │       ├── Card.tsx
+│   │   │       ├── Badge.tsx
+│   │   │       ├── Skeleton.tsx
+│   │   │       ├── KpiCard.tsx
+│   │   │       ├── CustomChartLegend.tsx
+│   │   │       └── MultiSelectDropdown.tsx
+│   │   ├── hooks/                       # Hooks personalizados
+│   │   │   ├── usePortfolioData.ts      # Consultas reactivas con TanStack Query v5
+│   │   │   ├── useFilters.ts            # Operaciones y conteos de filtros activos
+│   │   │   └── usePagination.ts         # Paginador cliente/servidor
 │   │   ├── pages/
-│   │   │   ├── Dashboard/    # OverviewSection, CompositionSection, RankingsSection, OperationsSection, RetentionSection
-│   │   │   └── Login/        # LoginPage modular
-│   │   ├── routes/           # ProtectedRoute (guard de sesión) y AppRoutes
-│   │   ├── services/         # api client modular
-│   │   ├── store/            # Estado global con Zustand (useAuthStore, useDashboardStore)
-│   │   ├── styles/           # Tokens institucionales y tema Tailwind
-│   │   ├── types/            # Tipos e interfaces de datos estrictamente tipadas
-│   │   └── utils/            # formatters, mockData (anónimo) y portfolioCalculations (motor cliente)
-│   ├── public/               # Favicon SVG corporativo de Apoyo Integral
-│   ├── index.html            # Plantilla con tipografías Inter y Plus Jakarta Sans
+│   │   │   ├── Dashboard/               # Módulos de analítica por pestaña
+│   │   │   │   ├── Overview/            # Vista 1: Resumen General, KPIs y Colocación
+│   │   │   │   ├── Composition/         # Vista 2: Composición por Producto y Saldo
+│   │   │   │   ├── Rankings/            # Vista 3: Rankings TOP 10 de Cartera en Riesgo
+│   │   │   │   ├── Operations/          # Vista 4: Días de Pago, Vencimientos y Precobro
+│   │   │   │   ├── Retention/           # Vista 5: Deserción y Matriz de Rodamiento
+│   │   │   │   └── DashboardPage.tsx    # Orquestador del Dashboard con notas técnicas
+│   │   │   └── Login/
+│   │   │       └── LoginPage.tsx        # Login exclusivo Google Sign-In con panel split-screen
+│   │   ├── routes/                      # Enrutamiento protegido (ProtectedRoute, AppRoutes)
+│   │   ├── services/                    # Cliente HTTP Axios centralizado con interceptores
+│   │   ├── store/                       # Estado global con Zustand (useAuthStore, useDashboardStore)
+│   │   ├── styles/                      # Tokens de color institucionales y tema Tailwind CSS
+│   │   ├── types/                       # Definiciones de tipos TypeScript estrictos
+│   │   └── utils/                       # Motor de cálculos cliente, formateadores y mocks anónimos
+│   ├── public/                          # Favicon e isotipos SVG corporativos
+│   ├── index.html                       # Documento raíz con tipografías Inter y Plus Jakarta Sans
 │   ├── package.json
-│   └── vite.config.ts        # Configuración con @tailwindcss/vite y proxy reverso /api
+│   └── vite.config.ts                   # Configuración con @tailwindcss/vite y proxy /api
 │
-├── package.json              # Scripts orquestadores del workspace
+├── package.json                         # Scripts de orquestación del monorepositorio
 └── README.md
 ```
 
 ---
 
+## 🔐 Autenticación Corporativa Exclusiva (Google Sign-In)
+
+La autenticación ha sido completamente estandarizada en un flujo exclusivo con **Google Sign-In**, eliminando credenciales locales, contraseñas y cuentas demo para garantizar el estándar de seguridad de Google Identity:
+
+1. **Flujo Criptográfico sin Contraseñas:**
+   - El botón oficial `@react-oauth/google` emite un ID Token criptográfico firmado por Google.
+   - El backend (`POST /api/auth/google`) valida el token directamente con `google-auth-library` contra las claves públicas de Google, verificando emisor (`accounts.google.com`), audiencia (`GOOGLE_CLIENT_ID`), expiración y correo verificado.
+   - **Restricción de Dominio Corporativo:** Solo se autorizan cuentas pertenecientes a los dominios configurados en `GOOGLE_ALLOWED_DOMAINS` (por ejemplo, `@apoyointegral.com.gt`).
+
+2. **Gestión de Sesión Segura:**
+   - La sesión se firma con JWT (HS256) y se emite dentro de una cookie `HttpOnly`, con atributos `Secure` y directiva `SameSite=Lax`.
+   - El perfil de usuario almacena exclusivamente los datos de identidad provistos por Google: `name`, `email` y `picture` (avatar).
+
+3. **Acceso Homogéneo:**
+   - Se eliminaron las jerarquías de roles complejas (`admin`/`analyst`). Todo colaborador validado con su cuenta institucional de Google accede de forma inmediata e íntegra a todas las métricas, herramientas de consulta y sincronización de cartera.
+
+---
+
 ## ⚡ Verificación de Paridad Matemática (100% Idéntico)
 
-Para garantizar total fidelidad financiera, el proyecto incluye un script de paridad automática (`scripts/parity.ts`). Este script ejecuta el `<script>` original de `Dashboard_Cartera_AIG.html` dentro de un entorno virtualizado de Node.js (con DOM y Chart.js simulados) y evalúa **2,428 comprobaciones independientes**:
+Para asegurar absoluta fidelidad contable y de riesgo frente a los cálculos históricos de Apoyo Integral, el proyecto cuenta con un test automatizado de paridad matemática (`scripts/parity.ts`). 
 
-- **Cartera total y número de clientes únicos.**
-- **PAR 1** (cartera en riesgo $\ge 1$ día y clientes en mora).
-- **PAR 30** (cartera en riesgo $\ge 30$ días y clientes).
-- **Colocación mensual real** por tipo de crédito (evitando sesgo de cancelaciones históricas).
-- **Composiciones porcentuales** por producto y bloque de saldo.
-- **Rankings TOP 10** en cada uno de los 5 tramos de morosidad.
-- **Distribución de días de pago (1 al 31)** en monto y clientes.
-- **Vencimientos de cartera a 30 y 90 días.**
-- **Precobros** (créditos con primera cuota estimada dentro de 30 días, `ucp = 0`).
-- **Deserciones** de clientes al día entre cierres.
-- **Matriz de rodamiento de mora** (celda por celda en clientes y en saldo Q).
-
-Para ejecutar la verificación:
+Este script ejecuta en una VM aislada de Node.js el motor analítico de referencia (`legacyScript.js`) y evalúa **2,428 comprobaciones independientes** widget por widget, celda por celda y centavo a centavo:
 
 ```bash
 npm run test:parity
 ```
 
-**Resultado:**
-```
+```text
+> aig-portfolio-backend@1.0.0 test:parity
+> tsx scripts/parity.ts
+
 Paridad: 2428/2428 comprobaciones idénticas al HTML original.
 ✓ El motor nuevo reproduce exactamente el dashboard original.
 ```
 
+### Métricas Validadas en la Paridad
+- **Cartera Total y Clientes Únicos:** Suma exacta de Saldo de Capital (`sc`) y deduplicación estricta de códigos de cliente (`cod`).
+- **Mora Total (PAR 1):** Saldo total de créditos con días de mora $\ge 1$ día y clientes en mora.
+- **Cartera en Riesgo (PAR 30):** Créditos con días de mora $\ge 30$ días (saldo completo en riesgo según estándar de microfinanzas).
+- **Colocación Mensual Real:** Cómputo exclusivo de créditos desembolsados en el mes del corte (eliminando el sesgo por cancelaciones históricas).
+- **Composición de Cartera:** Porcentajes y saldos distribuidos por producto financiero y por 7 rangos de saldo.
+- **Rankings TOP 10:** Ordenamiento descendente estricto por saldo de capital en 5 tramos de morosidad.
+- **Distribución de Días de Pago:** Concentración de cartera y número de clientes del día 1 al 31 de cada mes.
+- **Vencimientos Próximos:** Proyecciones de cancelación a 30 y 90 días posteriores al cierre.
+- **Precobro Preventivo:** Créditos al día con `ucp = 0` (última cuota pagada igual a cero) cuya primera amortización cae dentro de los próximos 30 días.
+- **Deserción de Clientes:** Detección de clientes al día en el corte inicial ausentes en cortes posteriores.
+- **Matriz de Transición de Mora (Rodamiento):** Transición cliente a cliente y saldo a saldo entre cualquier par de cierres temporales.
+
 ---
 
-## 🎨 Sistema de Diseño & UX
+## 🎯 Estandarización y Normalización de Filtros
 
-- **Paleta Institucional Elevada:**
-  - Azul Marino Primario: `#014F84` (Acentos oscuros: `#023e68`, `#012f50`, `#001f36`).
-  - Naranja Corporativo: `#F48437` (Hover/Secundario: `#e0722a`, `#ff9a54`, `#fff6ee`).
-  - Semáforos de Riesgo: Verde Esmeralda `#2e9e6b`, Rojo `#d9534f`, Ámbar `#e0a500`.
-  - Escala Neutra: Slate moderno (`#0f172a`, `#334155`, `#64748b`, `#cbd5e1`, `#f8fafc`, `#ffffff`).
-- **Tipografía:** *Inter* y *Plus Jakarta Sans* con soporte de numerales tabulares (`tabular-nums`) para alineación contable estricta.
-- **Experiencia de Usuario:** Microinteracciones fluidas, encabezados fijos adhesivos (*sticky headers*) en tablas y barra de filtros, popovers con búsqueda en tiempo real y selector *Seleccionar todas*.
+### Consolidación del Filtro "SEXO"
+Para resolver discrepancias históricas en la base de datos (donde coexistían registros marcados como `F`, `FEMENINO`, `M` y `MASCULINO`), se implementó una normalización bidireccional transparente:
 
----
+1. **Opciones en la Interfaz (UI):**
+   El dropdown muestra estrictamente **dos opciones**:
+   - `FEMENINO`
+   - `MASCULINO`
+   El contador inferior refleja fielmente `"0 de 2 seleccionados"` y la búsqueda interna opera únicamente sobre estas dos alternativas.
 
-## 🔐 Seguridad y Autenticación
-
-1. **Gestión de Sesión:**
-   - Tokens JWT firmados con algoritmo HS256 emitidos en cookies seguras `HttpOnly` con directiva `SameSite=Lax`.
-   - Renovación y validación protegida por middleware en todas las rutas bajo `/api/portfolio` y `/api/upload`.
-2. **Control de Acceso Basado en Roles (RBAC):**
-   - **Administrador (`admin`):** Visualización completa + autorización para cargar nuevos cierres mensuales vía Excel.
-   - **Analista (`analyst`):** Acceso de solo lectura a métricas, gráficos, exportaciones y matrices.
-3. **Autenticación Híbrida:**
-   - **Tradicional:** Validación con correo y contraseña cifrada con `bcryptjs` (cost factor 10-12).
-   - **Google OAuth 2.0 (Sign-In with Google):** Flujo de producción con el componente oficial `<GoogleLogin />` (`@react-oauth/google`) en React y verificación criptográfica estricta en el servidor Node.js mediante `google-auth-library`. Valida audiencia (`aud`), emisor (`iss`), expiración (`exp`) y restricción por dominios corporativos autorizados (`GOOGLE_ALLOWED_DOMAINS`).
-   - **Simulación OAuth2:** Modo fallback para desarrollo local cuando no hay conexión a internet o credenciales configuradas.
-
-### Cuentas Demo de Prueba Rápida
-
-En entorno de desarrollo se incluyen dos cuentas preconfiguradas con botones de auto-llenado en la pantalla de inicio de sesión:
-
-| Rol | Correo Electrónico | Contraseña | Permisos |
-| :--- | :--- | :--- | :--- |
-| **Administrador** | `riesgos@apoyointegral.com.gt` | `Cartera2026!` | Visualización + Carga de Cierres |
-| **Analista** | `direccion@apoyointegral.com.gt` | `Direccion2026!` | Visualización y Reportes |
+2. **Normalización en Motor de Filtrado (Backend y Frontend):**
+   La función `normalizeGender` clasifica de forma transparente:
+   - `'M'` y `'MASCULINO'` $\rightarrow$ Coinciden con la selección **MASCULINO**.
+   - `'F'` y `'FEMENINO'` $\rightarrow$ Coinciden con la selección **FEMENINO**.
+   - Ningún registro de la base de datos es modificado o destruido. Si se seleccionan ambas o ninguna, se computa la totalidad de la cartera.
 
 ---
 
 ## 🗄️ Conexión Directa a Base de Datos On-Premises (SQL Server)
 
-El backend de Node.js integra un cliente de base de datos de alto rendimiento y grado bancario para sincronizar dinámicamente la cartera activa y los catálogos institucionales directamente desde el servidor on-premises de Apoyo Integral Guatemala (`192.168.1.81`).
+El backend de Node.js integra un cliente de base de datos de grado institucional para comunicarse directamente con la instancia de SQL Server en la red local (`192.168.1.81:1433/RESUMENAIG`).
 
-### 1. Política Estricta de Solo Lectura (Zero-Write Policy)
-- **Defensa en Profundidad:** El backend aplica una guardia estricta (`src/db/readonly.ts`) que analiza todo texto SQL antes de enviarlo al socket de red. Rechaza de forma inmediata e incondicional cualquier sentencia que no sea un `SELECT` (o `WITH ... SELECT`) y bloquea palabras clave como `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `TRUNCATE`, `EXEC`, `MERGE` o sentencias transaccionales (`BEGIN`, `COMMIT`, `ROLLBACK`).
-- **Permisos de Base de Datos:** El usuario corporativo asignado (`HenryAIG`) está restringido a permisos estrictos de consulta (`db_datareader` en `RESUMENAIG`).
-- **Consultas Parametrizadas:** Todos los filtros y parámetros dinámicos se transmiten mediante parámetros tipados (`sql.NVarChar`, `sql.Int`), eliminando por diseño cualquier riesgo de inyección SQL.
+### 1. Política Estricta de Solo Lectura (Zero-Write Guard)
+- **Defensa en Profundidad:** El módulo `src/db/readonly.ts` analiza sintácticamente cada consulta antes de su transmisión al socket. Bloquea e interrumpe de forma inmediata sentencias que no sean `SELECT` o `WITH ... SELECT`, rechazando `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `TRUNCATE`, `EXEC` o `MERGE`.
+- **Rol de Usuario:** El usuario asignado (`HenryAIG`) opera bajo el esquema de permisos `db_datareader`.
+- **Parametrización Tipada:** Todas las consultas aplican tipos nativos de TDS (`sql.NVarChar`, `sql.Int`), mitigando por diseño cualquier intento de inyección de código.
 
-### 2. Seguridad en Capa de Transporte (Cifrado End-to-End TLS / SSL)
-- **Cifrado de Socket DB:** La conexión con SQL Server (`192.168.1.81:1433`) negocia obligatoriamente cifrado `TLSv1.2` (`DB_ENCRYPT=true` o modo `strict` para TDS 8.0).
-- **Validación de Cifrado en Servidor:** Al conectar, el pool verifica contra `sys.dm_exec_connections` que `encrypt_option = TRUE`.
-- **Credenciales Seguras:** Las credenciales nunca están presentes en el código fuente; se leen exclusivamente desde variables de entorno (`backend/.env`), excluido del repositorio mediante `.gitignore`.
-- **API Segura:** La capa API admite ejecución nativa sobre HTTPS (`HTTPS_ENABLED=true`) o terminación TLS mediante reverse proxy corporativo, transmitiendo la sesión JWT mediante cookies `HttpOnly; SameSite=Lax`.
-
-### 3. Pool de Conexiones & Resiliencia
-- **Pool de Conexiones:** Mínimo de 2 y máximo de 10 conexiones simultáneas (`DB_POOL_MIN`, `DB_POOL_MAX`), reutilizando sockets y evitando sobrecargar el motor de base de datos.
-- **Reconexión Automática con Backoff Exponencial:** Si la red local o la VPN fluctúan, el cliente reintenta la conexión hasta 5 veces con intervalos de retroceso progresivo y jitter aleatorio.
-- **Health-Checks Periódicos:** Sondeo continuo mediante `SELECT 1` para detectar conexiones inactivas y medir la latencia en tiempo real.
-- **Graceful Shutdown:** Al recibir señales `SIGINT` o `SIGTERM`, el servidor drena ordenadamente el pool sin interrumpir lecturas activas.
-
-### 4. Diagnóstico de Conexión y Catálogo de BD
-Para validar la conectividad, el cifrado TLS y los permisos sin necesidad de levantar el servidor web:
-
-```bash
-# Diagnóstico rápido de conexión y salud del pool
-npm run db:check
-
-# Exploración del catálogo de tablas y vistas en la base de datos
-npm run db:check -- --discover
-```
-
-### 5. Guía de Red, VPN y Firewall (LAN 192.168.1.x)
-Si el diagnóstico reporta `TCP 192.168.1.81:1433 NO alcanzable`:
-1. **Verificar Conexión de Red:** Asegúrese de estar conectado físicamente a la red LAN de la oficina o con la VPN institucional activa (acceso a la subred `192.168.1.0/24`).
-2. **Ruta IP Local:** Compruebe que su adaptador de red tiene ruta hacia el gateway:
-   ```powershell
-   Test-NetConnection -ComputerName 192.168.1.81 -Port 1433
-   ```
-3. **Regla de Firewall de Windows:** En el servidor de base de datos, el puerto `1433 TCP` debe estar permitido en el perfil de red privada/dominio:
-   ```powershell
-   New-NetFirewallRule -DisplayName "SQL Server (TCP 1433)" -Direction Inbound -LocalPort 1433 -Protocol TCP -Action Allow
-   ```
-4. **Habilitación de TCP/IP en SQL Server Configuration Manager:** En el servidor on-premises, verifique que en *SQL Server Network Configuration -> Protocols for [Instance]*, el protocolo `TCP/IP` esté en estado **Enabled** y escuchando en el puerto `1433`.
+### 2. Cifrado TLS y Resiliencia de Red
+- **Cifrado de Socket:** La conexión negocia cifrado TLS obligatorio (`DB_ENCRYPT=true`). Al inicializar el pool, el servidor verifica contra `sys.dm_exec_connections` que `encrypt_option = TRUE`.
+- **Pool de Conexiones:** Mínimo de 2 y máximo de 10 conexiones (`DB_POOL_MIN`, `DB_POOL_MAX`), reutilizando sockets abiertos.
+- **Reconexión Automática:** Reintentos con retroceso exponencial (*exponential backoff*) y jitter aleatorio en caso de microcortes en la LAN o VPN.
+- **Sincronización en Caliente:** El botón **"Actualizar cierre"** en el encabezado ejecuta `POST /api/portfolio/sync`, extrayendo los últimos créditos activos de la base de datos y refrescando la caché de TanStack Query sin necesidad de reiniciar el servicio.
 
 ---
 
-## 🚀 Instalación y Puesta en Marcha
+## 🎨 Sistema de Diseño & Experiencia de Usuario (UI/UX)
+
+- **Paleta Institucional Elevada:**
+  - **Azul Marino Primario:** `#014F84` (Variantes: `#023e68`, `#012f50`, `#001f36`).
+  - **Naranja Corporativo:** `#F48437` (Variantes: `#e0722a`, `#ff9a54`, `#fff6ee`).
+  - **Semáforos de Riesgo:** Esmeralda `#10b981` (Al día), Ámbar `#f59e0b` (Mora temprana), Rojo `#ef4444` (Mora crítica).
+  - **Gama Slate Neutra:** `#0f172a`, `#334155`, `#64748b`, `#cbd5e1`, `#f8fafc`, `#ffffff`.
+- **Tipografía Financiera:** Integración de *Inter* y *Plus Jakarta Sans* con numerales tabulares (`font-feature-settings: 'tnum'`) para alineación decimal estricta en tablas contables.
+- **Microinteracciones:** Transiciones fluidas de pestaña, barras de filtros fijas al scroll (*sticky*), popovers con búsqueda en vivo, y gráficos responsivos con tooltips formateados en Quetzales (`Q`).
+
+---
+
+## 🚀 Instalación y Configuración
 
 ### Prerrequisitos
-- **Node.js** v20.x o superior.
-- **npm** v10.x o superior.
+- **Node.js** $\ge$ v20.x LTS.
+- **npm** $\ge$ v10.x.
 
-### 1. Clonar el repositorio e instalar dependencias
-
+### 1. Clonar el repositorio
 ```bash
 git clone https://github.com/hnrylvo/FUSAI-DashboardAIG.git
 cd FUSAI-DashboardAIG
+```
 
-# Instalar dependencias del backend
+### 2. Instalar dependencias
+```bash
+# Dependencias del Backend
 cd backend && npm install
 
-# Instalar dependencias del frontend
+# Dependencias del Frontend
 cd ../frontend && npm install
 cd ..
 ```
 
-### 2. Configurar Variables de Entorno
+### 3. Configurar Variables de Entorno
 
-Copiar la plantilla en el backend:
-
+#### Backend (`backend/.env`)
+Crear el archivo `backend/.env` a partir de la plantilla:
 ```bash
 cp backend/.env.example backend/.env
 ```
-
-Configurar los valores deseados en `backend/.env`:
-
+Configuración recomendada:
 ```env
 PORT=4000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
-JWT_SECRET=tu_clave_secreta_jwt_de_al_menos_32_caracteres
+JWT_SECRET=tu_secreto_criptografico_de_al_menos_32_caracteres_2026
 SESSION_TTL_HOURS=8
-SEED_HTML_PATH=../Dashboard_Cartera_AIG.html
-DATA_DIR=./data
-MAX_UPLOAD_MB=25
 
-# Opcional: Integración real de Google OAuth2
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GOOGLE_REDIRECT_URI=http://localhost:4000/api/auth/google/callback
-GOOGLE_ALLOWED_DOMAINS=apoyointegral.com.gt,fusai.org
-GOOGLE_SIMULATION=true
+# Origen de datos ('database' para SQL Server en vivo, 'file' para semilla JSON)
+DATA_SOURCE=database
+
+# Conexión a SQL Server On-Premises
+DB_HOST=192.168.1.81
+DB_PORT=1433
+DB_NAME=RESUMENAIG
+DB_USER=HenryAIG
+DB_PASSWORD=tu_contraseña_de_base_de_datos
+DB_ENCRYPT=true
+DB_TRUST_SERVER_CERT=true
+DB_READ_ONLY_INTENT=true
+
+# Google OAuth 2.0
+GOOGLE_CLIENT_ID=599941958749-flp47tme277h6686v407otfmh6u6jsos.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=tu_client_secret_de_google
+GOOGLE_ALLOWED_DOMAINS=apoyointegral.com.gt,fusai.org,gmail.com
 ```
 
-### 3. Ejecutar en Modo Desarrollo
+#### Frontend (`frontend/.env`)
+Crear el archivo `frontend/.env`:
+```env
+VITE_GOOGLE_CLIENT_ID=599941958749-flp47tme277h6686v407otfmh6u6jsos.apps.googleusercontent.com
+```
 
-Desde la raíz del proyecto, ejecutar ambos servicios en paralelo:
+### 4. Ejecutar en Modo Desarrollo
 
+Levantar backend y frontend simultáneamente desde la raíz:
 ```bash
 npm run dev
 ```
 
-O en terminales independientes:
-```bash
-# Terminal 1: Backend API (puerto 4000)
-npm run dev:backend
-
-# Terminal 2: Frontend SPA (puerto 5173 con proxy reverso a :4000)
-npm run dev:frontend
-```
-
-Abra su navegador en **[http://localhost:5173](http://localhost:5173)**.
+La aplicación estará disponible de inmediato en **[http://localhost:5173](http://localhost:5173)**.
 
 ---
 
-## 📦 Compilación y Despliegue para Producción
+## 🛠 Guía de Scripts Disponibles
 
-El backend está diseñado para servir los archivos estáticos optimizados del frontend en producción, permitiendo un despliegue contenerizado o en servidor único sin requerir servidores web separados:
+En la raíz del proyecto se encuentran disponibles los siguientes comandos de orquestación:
+
+| Comando | Descripción |
+| :--- | :--- |
+| `npm run dev` | Inicia en paralelo el servidor API (puerto 4000) y el servidor Vite (puerto 5173). |
+| `npm run dev:backend` | Inicia únicamente el backend en modo desarrollo con recarga en caliente (`tsx watch`). |
+| `npm run dev:frontend` | Inicia únicamente el frontend con el servidor de desarrollo Vite. |
+| `npm run build` | Ejecuta la verificación de tipos TypeScript y la compilación de producción de ambos proyectos. |
+| `npm run test:parity` | Ejecuta la suite de paridad matemática (2,428 comprobaciones) en el motor analítico. |
+| `npm run db:check` | Diagnostica la conexión de red TCP, handshake TLS y lectura en SQL Server. |
+| `npm run start` | Arranca el servidor Node.js en modo producción para servir la API y los activos compilados. |
+
+---
+
+## 📊 Catálogo de Endpoints API
+
+### `/api/auth` (Autenticación Google)
+- `GET /api/auth/providers` — Retorna el estado del proveedor de autenticación y el `clientId` público de Google.
+- `POST /api/auth/google` — Verifica el ID Token criptográfico emitido por Google y establece la cookie de sesión `HttpOnly`.
+- `GET /api/auth/me` — Devuelve los datos del perfil corporativo de la sesión activa (`name`, `email`, `picture`).
+- `POST /api/auth/logout` — Invalida y elimina la cookie de sesión segura.
+
+### `/api/portfolio` *(Requiere Sesión Activa)*
+- `GET /api/portfolio/meta` — Catálogo de cortes disponibles, metadatos y opciones consolidadas de filtros.
+- `POST /api/portfolio/overview` — Cálculo de los 8 KPIs principales y series históricas de Cartera, Clientes y Morosidad (PAR1/PAR30).
+- `POST /api/portfolio/placement` — Colocación mensual por tipo de crédito (Nuevo, Recurrente con Saldo, etc.).
+- `POST /api/portfolio/composition` — Distribución de cartera y clientes por producto y por tramo de saldo.
+- `POST /api/portfolio/rankings/:bucket` — TOP 10 de créditos en riesgo para tramos `sana`, `b1` (1–30 d), `b2` (31–90 d), `b3` (91–120 d) y `b4` (>120 d).
+- `POST /api/portfolio/operations/payment-days` — Distribución de créditos y montos por día de pago del mes (1 al 31).
+- `POST /api/portfolio/operations/maturities` — Vencimientos proyectados a 30 y 90 días posteriores al cierre.
+- `POST /api/portfolio/operations/pre-collection` — Alertas de precobro para créditos con primera amortización próxima y `ucp = 0`.
+- `POST /api/portfolio/retention/attrition` — Análisis de clientes al día que desertaron entre el corte inicial y el final.
+- `POST /api/portfolio/retention/transition` — Matriz completa de transición y rodamiento de morosidad (por clientes o monto Q).
+- `POST /api/portfolio/sync` — Sincronización bajo demanda directamente contra la base de datos SQL Server on-premises.
+
+---
+
+## 📦 Compilación y Despliegue en Producción
+
+El backend de Node.js está preparado para servir los activos estáticos minificados del frontend directamente en producción:
 
 ```bash
-# 1. Compilar frontend y backend
+# 1. Compilar ambos proyectos (TypeScript + Vite Bundle)
 npm run build
 
-# 2. Iniciar servidor de producción en el puerto configurado (ej. 4000)
+# 2. Iniciar el servidor de producción en el puerto configurado (ej. 4000)
 npm run start
 ```
 
-La aplicación completa estará disponible en `http://localhost:4000/`.
-
----
-
-## 📊 Endpoints de la API RESTful
-
-### `/api/auth`
-- `GET /api/auth/providers` — Consulta de proveedores de autenticación disponibles, Client ID público y cuentas demo.
-- `POST /api/auth/login` — Autenticación con correo y contraseña.
-- `POST /api/auth/google` — Verificación del ID Token de Google (`credential`) con `google-auth-library` y generación de sesión.
-- `POST /api/auth/logout` — Destrucción de sesión y limpieza de cookies.
-- `GET /api/auth/me` — Datos del usuario autenticado.
-- `GET /api/auth/google` — Inicio de flujo alternativo Google OAuth2 por redirección.
-- `GET /api/auth/google/callback` — Retorno y validación de tokens OAuth2 por código de autorización.
-- `POST /api/auth/google/simulate` — Autenticación simulada con cuenta corporativa.
-
-### `/api/portfolio` *(Requiere autenticación)*
-- `GET /api/portfolio/meta` — Metadatos, cierres disponibles y opciones para los 7 filtros globales.
-- `POST /api/portfolio/overview` — Cálculo de los 8 KPIs principales y series de tiempo mensuales (Cartera, Clientes, PAR 1, PAR 30).
-- `POST /api/portfolio/placement` — Colocación mensual acumulada por tipo de crédito.
-- `POST /api/portfolio/composition` — Distribuciones por producto y por tramo de saldo de capital.
-- `POST /api/portfolio/rankings/:bucket` — TOP 10 con paginación de créditos (`sana`, `b1`, `b2`, `b3`, `b4`).
-- `POST /api/portfolio/operations/payment-days` — Distribución por día de pago (1 a 31).
-- `POST /api/portfolio/operations/maturities` — Vencimientos próximos (30 y 90 días).
-- `POST /api/portfolio/operations/pre-collection` — Alertas de precobro (primera cuota próxima).
-- `POST /api/portfolio/retention/attrition` — Deserción de clientes al día entre cierres.
-- `POST /api/portfolio/retention/transition` — Matriz de rodamiento de mora (clientes o saldo Q).
-- `GET /api/portfolio/db/status` — Estado de salud del pool, latencia en ms, verificación TLS y confirmación de política de solo lectura.
-- `POST /api/portfolio/db/refresh` — Sincronización dinámica bajo demanda desde SQL Server (actualiza el cierre activo sin reiniciar el servicio).
-- `GET /api/portfolio/db/clients` — Paginación y búsqueda parametrizada de registros de clientes (`page`, `pageSize`, `search`).
-- `GET /api/portfolio/db/branches` — Listado de agencias con métricas agregadas de cartera y saldo total.
-- `GET /api/portfolio/db/officers` — Catálogo de asesores y gestores de cobro.
-- `GET /api/portfolio/db/snapshots` — Historial de cortes y snapshots de análisis detectados en la base de datos.
-
-### `/api/upload` *(Requiere rol Administrador)*
-- `POST /api/upload` — Carga masiva de archivos `.xls` o `.xlsx` con detección inteligente de fecha de corte o sobreescritura manual.
+La plataforma completa queda disponible en un único puerto `http://localhost:4000/`.
 
 ---
 
 ## 📄 Licencia y Confidencialidad
 
 **Apoyo Integral Guatemala, S.A. · Grupo FUSAI**  
-Material confidencial para uso interno exclusivo de Riesgos, Junta Directiva y entes de interés autorizados. Todos los derechos reservados.
+Material confidencial para uso interno exclusivo de la Gerencia de Riesgos, Dirección General y Junta Directiva. Prohibida su copia, distribución o divulgación total o parcial sin autorización expresa por escrito.
