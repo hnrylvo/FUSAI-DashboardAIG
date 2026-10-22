@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
-import { requireRole } from '../auth/session.js';
+import { requireAuth } from '../auth/session.js';
 import { config } from '../config.js';
 import { store } from '../data/store.js';
 import { IngestError, parseWorkbook } from '../engine/index.js';
@@ -36,7 +36,7 @@ interface FileResult {
  *   files[]   : uno o varios reportes .xls/.xlsx
  *   overrides : JSON opcional con fecha de cierre por nombre de archivo
  */
-uploadRouter.post('/', requireRole('admin'), upload.array('files', 24), (req, res) => {
+uploadRouter.post('/', requireAuth, upload.array('files', 24), (req, res) => {
   const files = (req.files as Express.Multer.File[] | undefined) ?? [];
   if (!files.length) throw new HttpError(400, 'Adjunte al menos un archivo.', 'NO_FILES');
   let overrides: Record<string, string> = {};

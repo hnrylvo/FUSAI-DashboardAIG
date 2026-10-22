@@ -23,11 +23,18 @@ function normalize(keys: string[], rows: Row[]): Row[] {
 }
 
 /**
- * Extrae `const RAW = {...};` del HTML original. Así el dashboard nuevo usa
- * exactamente los mismos datos sin duplicar 1.5 MB de información confidencial.
+ * Carga los datos semilla desde un archivo JSON (data/seed.json) o del HTML original.
  */
-export function loadSeedFromHtml(file: string): RawSeed | null {
+export function loadSeed(file: string): RawSeed | null {
   if (!fs.existsSync(file)) return null;
+  if (file.endsWith('.json')) {
+    try {
+      return JSON.parse(fs.readFileSync(file, 'utf8')) as RawSeed;
+    } catch (e) {
+      console.error('[data] Error al leer seed JSON:', e);
+      return null;
+    }
+  }
   const html = fs.readFileSync(file, 'utf8');
   const marker = 'const RAW = ';
   const start = html.indexOf(marker);
@@ -39,6 +46,8 @@ export function loadSeedFromHtml(file: string): RawSeed | null {
     .replace(/;$/, '');
   return JSON.parse(json) as RawSeed;
 }
+
+export const loadSeedFromHtml = loadSeed;
 
 class DataStore {
   private dataset: Dataset = { generated: '', cierres: {} };

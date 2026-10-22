@@ -47,10 +47,31 @@ export function toFilterState(input: FilterInput = {}): FilterState {
   return { sel, atraso: new Set(input.atraso ?? []) };
 }
 
+export const normalizeGender = (rawGender: string | null | undefined): 'MASCULINO' | 'FEMENINO' | 'OTRO' => {
+  if (!rawGender) return 'OTRO';
+  const val = String(rawGender).trim().toUpperCase();
+  if (val === 'M' || val === 'MASCULINO') return 'MASCULINO';
+  if (val === 'F' || val === 'FEMENINO') return 'FEMENINO';
+  return 'OTRO';
+};
+
 export function matchGlobal(r: Row, f: FilterState): boolean {
   for (const k of FILTER_KEYS) {
     const s = f.sel[k];
-    if (s.size && !s.has(gv(r, k))) return false;
+    if (!s.size) continue;
+    if (k === 'sexo') {
+      const loanGenderNormalized = normalizeGender(g(r, 'sexo'));
+      let match = false;
+      for (const selVal of s) {
+        if (normalizeGender(selVal) === loanGenderNormalized || selVal === gv(r, 'sexo')) {
+          match = true;
+          break;
+        }
+      }
+      if (!match) return false;
+    } else {
+      if (!s.has(gv(r, k))) return false;
+    }
   }
   if (f.atraso.size && !f.atraso.has(atrasoKey(g(r, 'dmora')))) return false;
   return true;

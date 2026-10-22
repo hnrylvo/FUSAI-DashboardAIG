@@ -31,12 +31,11 @@ const GoogleVerifySchema = z.object({
   credential: z.string().min(1, 'El ID Token de Google es obligatorio.'),
 });
 
-/** Proveedores disponibles + cuentas demo (solo fuera de producción). */
+/** Proveedores disponibles (Google OAuth). */
 authRouter.get('/providers', (_req, res) => {
   res.json({
     google: googleOAuthEnabled() ? 'oauth' : config.google.simulation ? 'simulated' : 'disabled',
     clientId: config.google.clientId || undefined,
-    demoAccounts: config.isProd ? [] : demoAccounts(),
   });
 });
 

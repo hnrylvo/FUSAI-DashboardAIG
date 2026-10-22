@@ -1,13 +1,12 @@
 import bcrypt from 'bcryptjs';
 import { config } from '../config.js';
 
-export type Role = 'admin' | 'analyst';
+export type Role = 'user';
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: Role;
-  provider: 'password' | 'google';
+  provider: 'google' | 'password';
   picture?: string;
 }
 interface LocalUser extends User {
@@ -40,7 +39,6 @@ export function initUsers() {
         id: `pwd:${e}`,
         email: e,
         passwordHash,
-        role: role === 'admin' ? 'admin' : 'analyst',
         name: name.join(':') || e,
         provider: 'password',
       });
@@ -54,7 +52,6 @@ export function initUsers() {
         id: `pwd:${u.email}`,
         email: u.email,
         name: u.name,
-        role: u.role,
         provider: 'password',
         passwordHash: bcrypt.hashSync(u.password, 10),
       });
@@ -81,7 +78,6 @@ export function googleUser(profile: { email: string; name?: string; picture?: st
     email,
     name: profile.name || email,
     picture: profile.picture,
-    role: config.adminEmails.includes(email) ? 'admin' : config.googleDefaultRole,
     provider: 'google',
   };
 }

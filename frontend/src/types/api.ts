@@ -1,25 +1,23 @@
-export type Role = 'admin' | 'analyst';
-
 export interface User {
-  id: string;
+  id?: string;
   email: string;
   name: string;
-  role: Role;
-  provider: 'password' | 'google';
   picture?: string;
+  provider?: string;
+  role?: string;
 }
 
 export interface DemoAccount {
   email: string;
   password: string;
-  role: Role;
+  role?: string;
   name: string;
 }
 
 export interface ProvidersResponse {
   google: 'oauth' | 'simulated' | 'disabled';
   clientId?: string;
-  demoAccounts: DemoAccount[];
+  demoAccounts?: DemoAccount[];
 }
 
 export type Key =

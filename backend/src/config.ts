@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -32,8 +33,11 @@ export const config = {
   sessionTtlHours: Number(env.SESSION_TTL_HOURS ?? 8),
   cookieName: 'aig_session',
 
-  /** HTML original del que se extraen los cierres semilla (const RAW = {...}). */
-  seedHtmlPath: path.resolve(BACKEND_ROOT, env.SEED_HTML_PATH ?? '../Dashboard_Cartera_AIG.html'),
+  /** Archivo del que se extraen los cierres semilla (seed.json canónico). */
+  seedHtmlPath: path.resolve(
+    BACKEND_ROOT,
+    env.SEED_HTML_PATH ?? 'data/seed.json',
+  ),
   /** Directorio donde se persisten los cierres cargados vía /api/upload. */
   dataDir: path.resolve(BACKEND_ROOT, env.DATA_DIR ?? './data'),
   maxUploadMb: Number(env.MAX_UPLOAD_MB ?? 25),

@@ -1,6 +1,6 @@
 # Dashboard de Cartera · Apoyo Integral Guatemala, S.A. (Grupo FUSAI)
 
-> **Enterprise-grade Portfolio & Credit Risk Analytics Platform** basada en el archivo original `Dashboard_Cartera_AIG.html`, preservando el **100% de la lógica matemática, reglas de negocio, filtros globales y transformaciones de datos** con una arquitectura desacoplada full-stack y una interfaz de usuario moderna.
+> **Enterprise-grade Portfolio & Credit Risk Analytics Platform** migrado y desacoplado del archivo legado `Dashboard_Cartera_AIG.html`, preservando el **100% de la lógica matemática, reglas de negocio, filtros globales y transformaciones de datos** con una arquitectura desacoplada full-stack y una interfaz de usuario moderna en React 19 + TypeScript.
 
 ---
 
@@ -10,15 +10,16 @@ El repositorio está estructurado en capas limpias y desacopladas:
 
 ```
 ├── backend/                  # API RESTful en Node.js + Express + TypeScript
+│   ├── data/                 # Semilla canónica de cierres (seed.json) y almacenamiento de reportes
 │   ├── src/
 │   │   ├── auth/             # Sesiones JWT seguras en cookies HttpOnly (SameSite=Lax)
 │   │   ├── config.ts         # Validación centralizada de variables de entorno
-│   │   ├── data/             # Carga de semilla desde HTML original y persistencia atómica
+│   │   ├── data/             # Carga de semilla desde seed.json y persistencia atómica
 │   │   ├── db/               # Integración directa con base de datos on-premises (SQL Server)
 │   │   │   ├── pool.ts       # Pool seguro con reconexión, health-checks y TLS obligatorio
 │   │   │   ├── readonly.ts   # Guardia de solo lectura estricta (rechaza mutaciones)
 │   │   │   └── repository.ts # Repositorio de consultas SELECT parametrizadas
-│   │   ├── engine/           # Motor de cálculo matemático (1:1 con el HTML original)
+│   │   ├── engine/           # Motor de cálculo matemático (1:1 con el motor analítico original)
 │   │   │   ├── core.ts       # Constantes KEYS canónicas, helpers de acceso g(r,k) y agregación
 │   │   │   ├── filters.ts    # Filtros globales (7 originales) y contexto memoizado Ctx
 │   │   │   ├── overview.ts   # KPIs, tendencias mensuales y colocación
@@ -31,8 +32,9 @@ El repositorio está estructurado en capas limpias y desacopladas:
 │   │   ├── app.ts            # Configuración de Express, Helmet CSP y CORS
 │   │   └── server.ts         # Arranque del servidor con TZ=America/Guatemala
 │   ├── scripts/
+│   │   ├── fixtures/         # Fixture del script legacy para verificación de paridad
 │   │   ├── db-check.ts       # Diagnóstico de conexión TCP, TLS y permisos de base de datos
-│   │   ├── parity.ts         # Test de paridad matemática (compara contra el script original)
+│   │   ├── parity.ts         # Test de paridad matemática (compara contra el script de referencia)
 │   │   └── hash-password.ts  # Generador de hashes bcrypt para cuentas corporativas
 │   ├── .env.example          # Plantilla documentada de variables de entorno
 │   ├── package.json
@@ -40,21 +42,25 @@ El repositorio está estructurado en capas limpias y desacopladas:
 │
 ├── frontend/                 # Single Page Application en React 19 + Vite 8 + Tailwind CSS v4
 │   ├── src/
-│   │   ├── api/              # Cliente HTTP tipado con manejo de credenciales y errores
 │   │   ├── components/
-│   │   │   ├── common/       # Header institucional, FilterBar, MultiSelectDropdown, KpiCard, UploadModal
-│   │   │   └── tabs/         # Vistas: OverviewTab, CompositionTab, RankingsTab, OperationsTab, RetentionTab
-│   │   ├── lib/              # Formatters de Quetzales (fQ, fQ2, fPct, fN), Chart.js registry
-│   │   ├── pages/            # LoginPage (split-screen) y DashboardPage
+│   │   │   ├── charts/       # CarteraTrendChart, MoraTrendChart, ColocacionChart, PaymentDaysChart, CompositionDoughnutChart
+│   │   │   ├── layout/       # Header, Sidebar, FilterBar, Footer, LayoutWrapper
+│   │   │   └── ui/           # Button, Card, Badge, Skeleton, KpiCard, CustomChartLegend, MultiSelectDropdown
+│   │   ├── hooks/            # usePortfolioData, useFilters, usePagination
+│   │   ├── pages/
+│   │   │   ├── Dashboard/    # OverviewSection, CompositionSection, RankingsSection, OperationsSection, RetentionSection
+│   │   │   └── Login/        # LoginPage modular
 │   │   ├── routes/           # ProtectedRoute (guard de sesión) y AppRoutes
+│   │   ├── services/         # api client modular
 │   │   ├── store/            # Estado global con Zustand (useAuthStore, useDashboardStore)
-│   │   └── types/            # Tipos e interfaces de datos
+│   │   ├── styles/           # Tokens institucionales y tema Tailwind
+│   │   ├── types/            # Tipos e interfaces de datos estrictamente tipadas
+│   │   └── utils/            # formatters, mockData (anónimo) y portfolioCalculations (motor cliente)
 │   ├── public/               # Favicon SVG corporativo de Apoyo Integral
 │   ├── index.html            # Plantilla con tipografías Inter y Plus Jakarta Sans
 │   ├── package.json
 │   └── vite.config.ts        # Configuración con @tailwindcss/vite y proxy reverso /api
 │
-├── Dashboard_Cartera_AIG.html# Archivo HTML original con datos de cartera embebidos (fuente de verdad)
 ├── package.json              # Scripts orquestadores del workspace
 └── README.md
 ```

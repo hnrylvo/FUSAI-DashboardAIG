@@ -21,9 +21,6 @@ interface DashboardState {
   mtxA: string | null;
   mtxMode: 'cli' | 'monto';
 
-  // UI state
-  isUploadModalOpen: boolean;
-
   // Acciones
   setMeta: (meta: MetaResponse) => void;
   setCierre: (cierre: string) => void;
@@ -45,8 +42,6 @@ interface DashboardState {
   setDesRange: (de: string, a: string) => void;
   setMtxRange: (de: string, a: string) => void;
   setMtxMode: (mode: 'cli' | 'monto') => void;
-
-  setUploadModalOpen: (open: boolean) => void;
 }
 
 const initialFilters: FilterPayload = {
@@ -76,8 +71,6 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   mtxDe: null,
   mtxA: null,
   mtxMode: 'cli',
-
-  isUploadModalOpen: false,
 
   setMeta: (meta) => {
     const cierres = meta.cierres.map((c) => c.cierre).sort();
@@ -115,12 +108,28 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   },
 
   setFilterOptions: (key, values) => {
+    const finalValues =
+      key === 'sexo'
+        ? Array.from(
+            new Set(
+              values
+                .map((v) => {
+                  const upper = v.trim().toUpperCase();
+                  if (upper === 'M' || upper === 'MASCULINO') return 'MASCULINO';
+                  if (upper === 'F' || upper === 'FEMENINO') return 'FEMENINO';
+                  return upper;
+                })
+                .filter(Boolean),
+            ),
+          )
+        : values;
+
     set({
       filters: {
         ...get().filters,
         sel: {
           ...get().filters.sel,
-          [key]: values,
+          [key]: finalValues,
         },
       },
     });
@@ -189,6 +198,4 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   setDesRange: (desDe, desA) => set({ desDe, desA }),
   setMtxRange: (mtxDe, mtxA) => set({ mtxDe, mtxA }),
   setMtxMode: (mtxMode) => set({ mtxMode }),
-
-  setUploadModalOpen: (isUploadModalOpen) => set({ isUploadModalOpen }),
 }));

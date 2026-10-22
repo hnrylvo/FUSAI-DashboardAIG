@@ -17,15 +17,17 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const htmlPath = path.resolve(here, '../../Dashboard_Cartera_AIG.html');
+const seedPath = path.resolve(here, '../data/seed.json');
+const fixtureScriptPath = path.resolve(here, 'fixtures/legacyScript.js');
 
 const E = await import('../src/engine/index.js');
-const { loadSeedFromHtml } = await import('../src/data/store.js');
+const { loadSeed } = await import('../src/data/store.js');
 
 /* ------------------------- Sandbox del original ------------------------ */
-const html = fs.readFileSync(htmlPath, 'utf8');
-const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
-const original = scripts[scripts.length - 1][1];
+if (!fs.existsSync(fixtureScriptPath)) {
+  throw new Error('No se encontró el script de referencia de paridad en ' + fixtureScriptPath);
+}
+const original = fs.readFileSync(fixtureScriptPath, 'utf8');
 
 class FakeEl {
   innerHTML = '';
@@ -110,8 +112,7 @@ function eq(label: string, got: unknown, want: unknown) {
 }
 const dsData = (id: string, i: number) => charts[id].data.datasets[i].data;
 
-/* ------------------------------ Escenarios ----------------------------- */
-const seed = loadSeedFromHtml(htmlPath)!;
+const seed = loadSeed(seedPath)!;
 const dataset = { generated: seed.generated, cierres: seed.cierres };
 const order = Object.keys(dataset.cierres).sort();
 

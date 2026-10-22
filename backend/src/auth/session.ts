@@ -53,7 +53,11 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction) {
   next();
 }
 
-export const requireRole = (role: Role) => (req: Request, _res: Response, next: NextFunction) => {
-  if (req.user?.role !== role) return next(new HttpError(403, 'No tiene permisos para esta acción.', 'FORBIDDEN'));
+export const requireRole = (_role?: unknown) => (req: Request, _res: Response, next: NextFunction) => {
+  if (!req.user) {
+    const user = readSession(req);
+    if (!user) return next(new HttpError(401, 'Sesión no válida o expirada.', 'UNAUTHENTICATED'));
+    req.user = user;
+  }
   next();
 };
