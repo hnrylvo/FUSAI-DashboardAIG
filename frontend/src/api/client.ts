@@ -15,6 +15,7 @@ import type {
   SyncResponse,
   UploadResponse,
   User,
+  VintageDataResponse,
 } from '../types/api';
 
 export class ApiError extends Error {
@@ -154,6 +155,22 @@ export const api = {
       request<MatrixResponse>('/api/portfolio/retention/transition', {
         method: 'POST',
         body: JSON.stringify({ de, a, filters }),
+      }),
+  },
+
+  vintage: {
+    getData: () => request<VintageDataResponse>('/api/vintage/data'),
+    getMeta: () =>
+      request<{
+        v: number;
+        cierres: string[];
+        totalLoans: number;
+        source: 'database' | 'fixture';
+        updatedAt: string;
+      }>('/api/vintage/meta'),
+    sync: () =>
+      request<{ ok: boolean; cierre: string; rowsCount: number; newLoansCount: number }>('/api/vintage/sync', {
+        method: 'POST',
       }),
   },
 

@@ -44,7 +44,9 @@ El proyecto está diseñado bajo un modelo desacoplado full-stack en TypeScript,
 │   │   ├── db/                          # Conexión directa a SQL Server On-Premises (RESUMENAIG)
 │   │   │   ├── pool.ts                  # Pool resiliente TLSv1.2 con backoff exponencial y health-check
 │   │   │   ├── readonly.ts              # Guardia estricta de solo lectura (rechaza mutaciones)
-│   │   │   └── repository.ts            # Consultas SELECT parametrizadas y normalización canónica
+│   │   │   ├── repository.ts            # Consultas SELECT parametrizadas y normalización canónica
+│   │   │   ├── vintageBaseline.ts       # Dataset baseline tipado en código de cosechas y cierres históricos
+│   │   │   └── vintageRepository.ts     # Repositorio de cosechas con enriquecimiento dinámico desde SQL Server
 │   │   ├── engine/                      # Motor analítico y financiero (25 columnas canónicas)
 │   │   │   ├── core.ts                  # Columnas canónicas KEYS, helpers de agregación g(r,k)
 │   │   │   ├── filters.ts               # Filtros globales, contexto memoizado Ctx y normalización
@@ -54,7 +56,11 @@ El proyecto está diseñado bajo un modelo desacoplado full-stack en TypeScript,
 │   │   │   ├── retention.ts             # Deserción de clientes y matriz de rodamiento de mora
 │   │   │   └── ingest.ts                # Ingesta y parseo seguro de libros Excel (.xls / .xlsx)
 │   │   ├── http/                        # Manejador de errores RFC 7807 y validación Zod
-│   │   ├── routes/                      # Endpoints modulares (/api/auth, /api/portfolio, /api/upload)
+│   │   ├── routes/                      # Endpoints modulares (/api/auth, /api/portfolio, /api/vintage, /api/upload)
+│   │   │   ├── auth.ts                  # Flujo de autenticación corporativa Google Sign-In
+│   │   │   ├── portfolio.ts             # Analítica de cartera activa, KPIs y consultas DB
+│   │   │   ├── vintage.ts               # Endpoints de Vintage de Cosechas y Matrices de Transición
+│   │   │   └── upload.ts                # Ingesta y reemplazo seguro de cierres en Excel
 │   │   ├── app.ts                       # Configuración de Express, Helmet CSP y CORS
 │   │   └── server.ts                    # Servidor con zona horaria America/Guatemala
 │   ├── scripts/
@@ -67,6 +73,8 @@ El proyecto está diseñado bajo un modelo desacoplado full-stack en TypeScript,
 │
 ├── frontend/                            # Single Page Application en React 19 + Vite 8 + Tailwind CSS v4
 │   ├── src/
+│   │   ├── api/
+│   │   │   └── client.ts                # Cliente API unificado con Axios, endpoints y tipado estricto
 │   │   ├── components/
 │   │   │   ├── charts/                  # Componentes Chart.js encapsulados y responsivos
 │   │   │   │   ├── CarteraTrendChart.tsx
@@ -76,10 +84,10 @@ El proyecto está diseñado bajo un modelo desacoplado full-stack en TypeScript,
 │   │   │   │   └── CompositionDoughnutChart.tsx
 │   │   │   ├── layout/                  # Estructura del layout institucional
 │   │   │   │   ├── Header.tsx           # Barra institucional con perfil Google y botón de sincronización DB
-│   │   │   │   ├── Sidebar.tsx          # Drawer lateral colapsable con navegación por vistas
+│   │   │   │   ├── Sidebar.tsx          # Drawer lateral colapsable con navegación por vistas (incluye Cosechas)
 │   │   │   │   ├── FilterBar.tsx        # Barra fija de filtros globales con multiselección
 │   │   │   │   ├── Footer.tsx           # Pie institucional FUSAI
-│   │   │   │   └── LayoutWrapper.tsx    # Contenedor orquestador
+│   │   │   │   └── LayoutWrapper.tsx    # Contenedor orquestador responsivo con ancho adaptativo
 │   │   │   └── ui/                      # Sistema de componentes de diseño atómico
 │   │   │       ├── Button.tsx
 │   │   │       ├── Card.tsx
@@ -99,15 +107,24 @@ El proyecto está diseñado bajo un modelo desacoplado full-stack en TypeScript,
 │   │   │   │   ├── Rankings/            # Vista 3: Rankings TOP 10 de Cartera en Riesgo
 │   │   │   │   ├── Operations/          # Vista 4: Días de Pago, Vencimientos y Precobro
 │   │   │   │   ├── Retention/           # Vista 5: Deserción y Matriz de Rodamiento
+│   │   │   │   ├── Cosechas/            # Vista 6: Cosechas (Vintage) & Matrices de Transición
+│   │   │   │   │   ├── CosechasSection.tsx    # Orquestador del módulo y switch de modo
+│   │   │   │   │   ├── VintageView.tsx        # Matriz calórica, curvas SVG dinámicas y exportación Excel
+│   │   │   │   │   ├── TransitionView.tsx     # Matrices de migración (1M-12M), evolución y detalle
+│   │   │   │   │   ├── CosechasFilters.tsx    # Filtros multidimensionales y switch de Asesor
+│   │   │   │   │   ├── TechnicalNotes.tsx     # Notas técnicas, fórmulas y reglas de negocio
+│   │   │   │   │   ├── Tooltip.tsx            # Tooltip flotante con viewport bounding
+│   │   │   │   │   ├── cosechasCore.ts        # Motor matemático cliente y cálculo de tramos
+│   │   │   │   │   └── cosechas.css           # Estilos visuales escopados y escalas cromáticas
 │   │   │   │   └── DashboardPage.tsx    # Orquestador del Dashboard con notas técnicas
 │   │   │   └── Login/
-│   │   │       └── LoginPage.tsx        # Login exclusivo Google Sign-In con panel split-screen
+│   │   │       └── LoginPage.tsx        # Login corporativo exclusivo Google Sign-In
 │   │   ├── routes/                      # Enrutamiento protegido (ProtectedRoute, AppRoutes)
 │   │   ├── services/                    # Cliente HTTP Axios centralizado con interceptores
 │   │   ├── store/                       # Estado global con Zustand (useAuthStore, useDashboardStore)
 │   │   ├── styles/                      # Tokens de color institucionales y tema Tailwind CSS
 │   │   ├── types/                       # Definiciones de tipos TypeScript estrictos
-│   │   └── utils/                       # Motor de cálculos cliente, formateadores y mocks anónimos
+│   │   └── utils/                       # Motor de cálculos cliente, formateadores y utilidades
 │   ├── public/                          # Favicon e isotipos SVG corporativos
 │   ├── index.html                       # Documento raíz con tipografías Inter y Plus Jakarta Sans
 │   ├── package.json
@@ -286,9 +303,10 @@ En la raíz del proyecto se encuentran disponibles los siguientes comandos de or
 
 ## 📊 Catálogo de Endpoints API
 
-### `/api/auth` (Autenticación Google)
+### `/api/auth` (Autenticación Google & Sesiones)
 - `GET /api/auth/providers` — Retorna el estado del proveedor de autenticación y el `clientId` público de Google.
 - `POST /api/auth/google` — Verifica el ID Token criptográfico emitido por Google y establece la cookie de sesión `HttpOnly`.
+- `POST /api/auth/login` — Autenticación secundaria mediante credenciales para roles técnicos / automatizados.
 - `GET /api/auth/me` — Devuelve los datos del perfil corporativo de la sesión activa (`name`, `email`, `picture`).
 - `POST /api/auth/logout` — Invalida y elimina la cookie de sesión segura.
 
@@ -304,6 +322,24 @@ En la raíz del proyecto se encuentran disponibles los siguientes comandos de or
 - `POST /api/portfolio/retention/attrition` — Análisis de clientes al día que desertaron entre el corte inicial y el final.
 - `POST /api/portfolio/retention/transition` — Matriz completa de transición y rodamiento de morosidad (por clientes o monto Q).
 - `POST /api/portfolio/sync` — Sincronización bajo demanda directamente contra la base de datos SQL Server on-premises.
+
+### `/api/portfolio/db` *(Consultas SQL Server On-Premises)*
+- `GET /api/portfolio/db/status` — Diagnóstico de conectividad con SQL Server (`RESUMENAIG`), salud del pool y política `STRICT_READ_ONLY_SELECT_ENFORCED`.
+- `GET /api/portfolio/db/clients` — Paginación y búsqueda server-side de clientes desde `dbo.CLIENTE`.
+- `GET /api/portfolio/db/branches` — Catálogo de agencias y sucursales con saldos consolidados de cartera desde `dbo.AGENCIAS`.
+- `GET /api/portfolio/db/officers` — Catálogo de asesores de crédito y gestores de cobro desde `dbo.PERSONAL`.
+- `GET /api/portfolio/db/snapshots` — Registro de snapshots y fechas de cierre detectadas en la base de datos.
+
+### `/api/vintage` *(Módulo de Cosechas & Matrices de Transición)*
+- `GET /api/vintage/data` — Retorna el dataset canónico de análisis de cosechas (Vintage y Matrices de Transición), incluyendo créditos normalizados, dimensiones y series mensuales de snapshots.
+- `GET /api/vintage/meta` — Resumen ligero de metadatos: versión del dataset, conteo total de créditos, catálogo de dimensiones y lista ordenada de cierres disponibles.
+- `POST /api/vintage/sync` — Sincronización en caliente y estrictamente de solo lectura desde SQL Server (`dbo.CARTERA`, `dbo.CREDITO`, `dbo.CLIENTE`, `dbo.PERSONAL`, `dbo.AGENCIAS`, `dbo.DEPARTAMENTO`), fusionando el corte vigente con el histórico.
+
+### `/api/upload` *(Ingesta de Libros Excel)*
+- `POST /api/upload` — Ingesta multipart/form-data de reportes de cartera en formato Excel (`.xls` o `.xlsx`) para incorporación de cierres.
+
+### `/api/health`
+- `GET /api/health` — Endpoint de liveness probe del servicio HTTP.
 
 ---
 

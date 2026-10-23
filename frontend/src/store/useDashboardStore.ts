@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { ColocTipo, FilterKey, FilterPayload, MetaResponse } from '../types/api';
 
-export type DashboardTab = 'resumen' | 'composicion' | 'rankings' | 'operacion' | 'retencion';
+export type DashboardTab = 'resumen' | 'composicion' | 'rankings' | 'operacion' | 'retencion' | 'cosechas';
 
 interface DashboardState {
   meta: MetaResponse | null;

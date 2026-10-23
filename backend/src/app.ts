@@ -10,6 +10,7 @@ import { errorHandler, notFound } from './http/errors.js';
 import { authRouter } from './routes/auth.js';
 import { portfolioRouter } from './routes/portfolio.js';
 import { uploadRouter } from './routes/upload.js';
+import { vintageRouter } from './routes/vintage.js';
 
 export function createApp() {
   const app = express();
@@ -39,6 +40,7 @@ export function createApp() {
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
   app.use('/api/auth', authRouter);
   app.use('/api/portfolio', requireAuth, portfolioRouter);
+  app.use('/api/vintage', requireAuth, vintageRouter);
   app.use('/api/upload', requireAuth, uploadRouter);
   app.use('/api', notFound);
 

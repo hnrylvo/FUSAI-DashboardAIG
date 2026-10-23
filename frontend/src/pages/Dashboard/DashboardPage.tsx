@@ -9,6 +9,7 @@ import { CompositionSection } from './Composition/CompositionSection';
 import { RankingsSection } from './Rankings/RankingsSection';
 import { OperationsSection } from './Operations/OperationsSection';
 import { RetentionSection } from './Retention/RetentionSection';
+import { CosechasSection } from './Cosechas/CosechasSection';
 
 export const DashboardPage: React.FC = () => {
   const { setMeta, activeTab } = useDashboardStore();
@@ -33,9 +34,11 @@ export const DashboardPage: React.FC = () => {
         {activeTab === 'rankings' && <RankingsSection />}
         {activeTab === 'operacion' && <OperationsSection />}
         {activeTab === 'retencion' && <RetentionSection />}
+        {activeTab === 'cosechas' && <CosechasSection />}
 
-        {/* Technical Criteria & Assumptions Accordion */}
-        <details className="mt-8 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden group">
+        {/* Technical Criteria & Assumptions Accordion (only for main dashboard tabs, Cosechas has its own dedicated notes) */}
+        {activeTab !== 'cosechas' && (
+          <details className="mt-8 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden group">
           <summary className="p-4 cursor-pointer text-xs font-bold text-[#014F84] flex items-center justify-between hover:bg-slate-50 select-none transition-colors">
             <div className="flex items-center gap-2">
               <HelpCircle size={16} className="text-[#014F84]" />
@@ -83,6 +86,7 @@ export const DashboardPage: React.FC = () => {
             </p>
           </div>
         </details>
+        )}
       </section>
     </LayoutWrapper>
   );

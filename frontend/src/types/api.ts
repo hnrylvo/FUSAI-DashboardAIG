@@ -251,3 +251,51 @@ export interface UploadResponse {
   results: UploadFileResult[];
   version: number;
 }
+
+export interface VintageDims {
+  asesor: string[];
+  agencia: string[];
+  garantia: string[];
+  sexo: string[];
+  producto: string[];
+  destino: string[];
+  tipo: string[];
+  depto: string[];
+}
+
+export type VintageLoanTuple = [
+  string, // ref
+  string, // cod
+  string, // name
+  string, // fdes
+  number, // monto
+  number, // plazo
+  number, // agenciaIdx
+  number, // garantiaIdx
+  number, // sexoIdx
+  number, // productoIdx
+  number, // destinoIdx
+  number, // tipoIdx
+  number  // deptoIdx
+];
+
+export type VintageSnapTuple = [
+  number, // loanIdx
+  number, // saldo
+  number, // dias
+  number  // asesorIdx
+];
+
+export interface VintageStoreData {
+  v: number;
+  dims: VintageDims;
+  loans: VintageLoanTuple[];
+  snaps: Record<string, VintageSnapTuple[]>;
+}
+
+export interface VintageDataResponse {
+  store: VintageStoreData;
+  source: 'database' | 'fixture';
+  updatedAt: string;
+}
+

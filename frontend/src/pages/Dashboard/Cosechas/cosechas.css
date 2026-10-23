@@ -1,0 +1,776 @@
+.cosechas-container {
+  --blue: #014F84;
+  --blue-d: #013a61;
+  --blue-l: #e6eff6;
+  --orange: #F48437;
+  --orange-d: #d96a1d;
+  --orange-l: #fdeee2;
+  --ink: #1b2733;
+  --ink2: #4a5868;
+  --muted: #7b8896;
+  --line: #dfe5ec;
+  --bg: #f3f6f9;
+  --card: #fff;
+
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+.cosechas-container * {
+  box-sizing: border-box;
+}
+
+.cosechas-container button,
+.cosechas-container select,
+.cosechas-container input {
+  font: inherit;
+  color: inherit;
+}
+
+.cosechas-container .card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(20, 40, 60, 0.04);
+}
+
+.cosechas-container .card h2 {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.cosechas-container .card .sub {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin-bottom: 10px;
+}
+
+.cosechas-container .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.cosechas-container .fld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.cosechas-container .fld > label,
+.cosechas-container .fld > .lb {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.cosechas-container select,
+.cosechas-container input[type="number"],
+.cosechas-container input[type="search"] {
+  border: 1px solid #c9d2dc;
+  border-radius: 8px;
+  padding: 7px 9px;
+  background: #fff;
+  min-width: 140px;
+}
+
+.cosechas-container .filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.cosechas-container .ms {
+  position: relative;
+}
+
+.cosechas-container .ms-b {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #c9d2dc;
+  border-radius: 8px;
+  background: #fff;
+  padding: 7px 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cosechas-container .ms-b .v {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.cosechas-container .ms.act .ms-b {
+  border-color: var(--orange);
+  background: var(--orange-l);
+}
+
+.cosechas-container .ms.act .ms-b .v {
+  color: var(--orange-d);
+  font-weight: 700;
+}
+
+.cosechas-container .ms-b::after {
+  content: "▾";
+  color: var(--muted);
+  margin-left: 2px;
+}
+
+.cosechas-container .ms-p {
+  display: none;
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 340px;
+  background: #fff;
+  border: 1px solid #c9d2dc;
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(15, 40, 70, 0.2);
+  padding: 8px;
+}
+
+.cosechas-container .ms.open .ms-p {
+  display: block;
+}
+
+.cosechas-container .ms-p input[type="search"] {
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.cosechas-container .ms-l {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.cosechas-container .ms-l label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.cosechas-container .ms-l label:hover {
+  background: var(--blue-l);
+}
+
+.cosechas-container .ms-l label span {
+  flex: 1;
+}
+
+.cosechas-container .ms-l label em {
+  font-style: normal;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.cosechas-container .ms-f {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 4px 0;
+  font-size: 12px;
+}
+
+.cosechas-container .ms-f a {
+  color: var(--blue);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.cosechas-container .navbar {
+  display: flex;
+  justify-content: center;
+}
+
+.cosechas-container .navbar .seg button {
+  padding: 11px 26px;
+  font-size: 14.5px;
+}
+
+.cosechas-container .stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.cosechas-container .kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.cosechas-container .kpi {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--blue);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.cosechas-container .kpi.o {
+  border-left-color: var(--orange);
+}
+
+.cosechas-container .kpi .t {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--ink2);
+  font-weight: 600;
+}
+
+.cosechas-container .kpi .n {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  margin: 2px 0;
+}
+
+.cosechas-container .kpi .s {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cosechas-container .bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cosechas-container .seg {
+  display: inline-flex;
+  border: 1px solid #c0cbd7;
+  border-radius: 9px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.cosechas-container .seg button {
+  border: 0;
+  background: #fff;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink2);
+  border-right: 1px solid #c0cbd7;
+  transition: background 0.15s, color 0.15s;
+}
+
+.cosechas-container .seg button:last-child {
+  border-right: 0;
+}
+
+.cosechas-container .seg button.on {
+  background: var(--blue);
+  color: #fff;
+}
+
+.cosechas-container .seg.o button.on {
+  background: var(--orange);
+  color: #fff;
+}
+
+.cosechas-container .btn {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 13px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.cosechas-container .btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.cosechas-container .btn.primary {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+}
+
+.cosechas-container .btn.primary:hover {
+  background: var(--orange-d);
+}
+
+.cosechas-container .btn.dark {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.cosechas-container .btn.dark:hover {
+  background: var(--blue-d);
+}
+
+.cosechas-container .btn.ghost {
+  border-color: var(--line);
+  background: #fff;
+  color: var(--blue);
+}
+
+.cosechas-container .btn.ghost:hover {
+  background: var(--blue-l);
+}
+
+.cosechas-container .mxwrap {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.cosechas-container table.mx {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  width: 100%;
+}
+
+.cosechas-container table.mx th,
+.cosechas-container table.mx td {
+  padding: 0;
+  text-align: center;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.cosechas-container table.mx thead th {
+  position: sticky;
+  top: 0;
+  background: #f7f9fb;
+  color: var(--ink2);
+  font-weight: 700;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--line);
+  z-index: 2;
+}
+
+.cosechas-container table.mx th.rl {
+  position: sticky;
+  left: 0;
+  background: #f7f9fb;
+  text-align: left;
+  padding: 0 10px;
+  min-width: 118px;
+  font-weight: 700;
+  color: var(--blue);
+  cursor: pointer;
+  z-index: 1;
+  border-right: 1px solid var(--line);
+}
+
+.cosechas-container table.mx thead th.rl {
+  z-index: 3;
+  cursor: default;
+  color: var(--ink2);
+}
+
+.cosechas-container table.mx th.rl:hover {
+  background: var(--blue-l);
+}
+
+.cosechas-container table.mx thead th.rl:hover {
+  background: #f7f9fb;
+}
+
+.cosechas-container table.mx td.meta {
+  color: var(--muted);
+  font-size: 11.5px;
+  padding: 0 8px;
+  background: #fbfcfd;
+  min-width: 58px;
+}
+
+.cosechas-container table.mx td.c {
+  height: 34px;
+  min-width: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid #fff;
+  border-radius: 3px;
+  position: relative;
+  transition: box-shadow 0.1s;
+}
+
+.cosechas-container table.mx td.c:hover {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.cosechas-container table.mx td.c.sel {
+  box-shadow: inset 0 0 0 3px var(--ink), 0 0 0 2px #fff;
+}
+
+.cosechas-container table.mx td.e {
+  background: #f1f2f4;
+  color: #b9c0c8;
+  font-weight: 400;
+  cursor: default;
+}
+
+.cosechas-container table.mx td.e:hover {
+  box-shadow: none;
+}
+
+.cosechas-container table.mx tr.tot th.rl,
+.cosechas-container table.mx tr.tot td.meta {
+  border-top: 2px solid var(--blue);
+  background: var(--blue-l);
+  color: var(--blue-d);
+}
+
+.cosechas-container table.mx tr.tot td.c {
+  border-top: 2px solid var(--blue);
+}
+
+/* Transition matrix table cells */
+.cosechas-container table.mx td.tc {
+  height: 50px;
+  min-width: 80px;
+  font-weight: 700;
+  border: 1.5px solid #fff;
+  border-radius: 4px;
+  line-height: 1.2;
+  font-size: 12.5px;
+}
+
+.cosechas-container table.mx td.tc small {
+  display: block;
+  font-weight: 500;
+  font-size: 10.5px;
+  opacity: 0.9;
+}
+
+.cosechas-container table.mx td.tc.ck {
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(20, 35, 47, 0.35);
+}
+
+.cosechas-container table.mx td.tc.ck:hover {
+  box-shadow: inset 0 0 0 3px var(--ink);
+}
+
+.cosechas-container table.mx td.tc.sel {
+  box-shadow: inset 0 0 0 3px var(--ink), 0 0 0 2px #fff;
+}
+
+.cosechas-container table.mx td.tc.e {
+  background: #f1f2f4;
+  color: #b9c0c8;
+  font-weight: 400;
+}
+
+.cosechas-container table.mx td.sm {
+  min-width: 70px;
+  font-weight: 700;
+  font-size: 12px;
+  background: #fbfcfd;
+  color: var(--ink2);
+}
+
+.cosechas-container table.mx td.sm.emp {
+  color: #b4510a;
+  background: var(--orange-l);
+  cursor: pointer;
+}
+
+.cosechas-container table.mx td.sm.emp:hover {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.cosechas-container table.mx td.sm small {
+  display: block;
+  font-weight: 500;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.cosechas-container table.mx th.rl small,
+.cosechas-container table.mx thead th small {
+  display: block;
+  font-weight: 500;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.cosechas-container table.mx thead th.sep {
+  border-left: 2px solid var(--line);
+}
+
+.cosechas-container table.mx td.ev {
+  height: 36px;
+  min-width: 60px;
+  font-weight: 700;
+  border: 1.5px solid #fff;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.cosechas-container table.mx td.ev:hover {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.cosechas-container table.mx td.ev.sel {
+  box-shadow: inset 0 0 0 3px var(--ink), 0 0 0 2px #fff;
+}
+
+.cosechas-container table.mx td.ev.e {
+  background: #f1f2f4;
+  color: #b9c0c8;
+  font-weight: 400;
+  cursor: default;
+}
+
+.cosechas-container .legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ink2);
+  flex-wrap: wrap;
+}
+
+.cosechas-container .lgbar {
+  width: 260px;
+  height: 12px;
+  border-radius: 6px;
+  border: 1px solid #cfd8e1;
+}
+
+.cosechas-container .lgt {
+  display: flex;
+  justify-content: space-between;
+  width: 260px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.cosechas-container .curves {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.cosechas-container .cleg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+.cosechas-container .cleg i {
+  display: inline-block;
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.cosechas-container .tablewrap {
+  overflow-x: auto;
+  max-height: 520px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.cosechas-container table.dt {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cosechas-container table.dt th {
+  position: sticky;
+  top: 0;
+  background: var(--blue);
+  color: #fff;
+  padding: 8px 9px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  z-index: 1;
+  font-weight: 600;
+}
+
+.cosechas-container table.dt th:hover {
+  background: var(--blue-d);
+}
+
+.cosechas-container table.dt th .ar {
+  color: var(--orange);
+  margin-left: 4px;
+}
+
+.cosechas-container table.dt td {
+  padding: 6px 9px;
+  border-bottom: 1px solid #eef1f5;
+  white-space: nowrap;
+}
+
+.cosechas-container table.dt tr:nth-child(even) td {
+  background: #fafcfd;
+}
+
+.cosechas-container table.dt td.num,
+.cosechas-container table.dt th.num {
+  text-align: right;
+}
+
+.cosechas-container .pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.cosechas-container .pill.r {
+  background: var(--orange-l);
+  color: #b4510a;
+}
+
+.cosechas-container .pill.b {
+  background: var(--blue-l);
+  color: var(--blue);
+}
+
+.cosechas-container .pill.g {
+  background: #eceff3;
+  color: #5a6673;
+}
+
+.cosechas-container .radios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 6px 0 10px;
+}
+
+.cosechas-container .radios label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.cosechas-container .dhead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cosechas-container .note {
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+.cosechas-container .note ul {
+  margin: 6px 0 0 18px;
+  padding: 0;
+}
+
+.cosechas-container .note li {
+  margin: 3px 0;
+}
+
+.cosechas-container .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+.cosechas-container .chips i {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+
+.cosechas-container .warn {
+  background: var(--orange-l);
+  border: 1px solid #f6c9a6;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: #7a3a07;
+  margin: 8px 0;
+}
+
+.cosechas-container .empty {
+  padding: 26px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.cosechas-container .small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Tooltip */
+#cosechas-tip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  background: #14232f;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 11px;
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  display: none;
+  max-width: 300px;
+}
+
+#cosechas-tip b {
+  color: #ffb98a;
+}

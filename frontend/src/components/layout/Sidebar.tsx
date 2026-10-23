@@ -4,6 +4,7 @@ import {
   CalendarCheck,
   ChevronLeft,
   ChevronRight,
+  Layers,
   LayoutDashboard,
   PieChart,
   Trophy,
@@ -57,6 +58,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Retención & Riesgo',
     icon: Activity,
     description: 'Deserción y matriz de rodamiento',
+  },
+  {
+    id: 'cosechas',
+    label: 'Cosechas',
+    icon: Layers,
+    description: 'Vintage y matrices de transición',
   },
 ];
 
